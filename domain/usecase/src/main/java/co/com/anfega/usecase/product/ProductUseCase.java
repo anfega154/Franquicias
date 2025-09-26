@@ -12,6 +12,8 @@ public class ProductUseCase implements ProductInputPort {
     private final ProductRepository productRepository;
     private final BranchRepository branchRepository;
 
+    private static final String STOCK_NOT_NULL = "El stock del producto no puede ser nulo o negativo";
+
     public ProductUseCase(ProductRepository productRepository, BranchRepository branchRepository) {
         this.productRepository = productRepository;
         this.branchRepository = branchRepository;
@@ -23,7 +25,7 @@ public class ProductUseCase implements ProductInputPort {
             return Mono.error(new IllegalArgumentException("El nombre del producto no puede estar vacío"));
         }
         if (product.getStock() == null || product.getStock() < 0) {
-            return Mono.error(new IllegalArgumentException("El stock del producto no puede ser nulo o negativo"));
+            return Mono.error(new IllegalArgumentException(STOCK_NOT_NULL));
         }
         if (branchName == null || branchName.isEmpty()) {
             return Mono.error(new IllegalArgumentException("El nombre de la suscursal no puede estar vacío"));
@@ -40,4 +42,13 @@ public class ProductUseCase implements ProductInputPort {
         }
         return productRepository.delete(productId);
     }
+
+    @Override
+    public Mono<Product> updateStock(String productId, long newStock) {
+        if (newStock < 0 || productId == null || productId.isEmpty()) {
+            return Mono.error(new IllegalArgumentException(STOCK_NOT_NULL));
+        }
+        return productRepository.updateStock(productId, newStock);
+    }
+
 }

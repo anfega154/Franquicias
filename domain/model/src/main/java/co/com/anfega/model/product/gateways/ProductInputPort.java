@@ -6,4 +6,5 @@ import reactor.core.publisher.Mono;
 public interface ProductInputPort {
     Mono<Product> save(Product product, String branchName);
     Mono<Void> delete(String productId);
+    Mono<Product> updateStock(String productId, long newStock);
 }

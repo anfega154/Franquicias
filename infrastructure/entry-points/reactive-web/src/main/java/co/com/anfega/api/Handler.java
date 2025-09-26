@@ -1,9 +1,6 @@
 package co.com.anfega.api;
 
-import co.com.anfega.api.dto.CreateBranchDTO;
-import co.com.anfega.api.dto.CreateFranchiseDTO;
-import co.com.anfega.api.dto.CreateProductDTO;
-import co.com.anfega.api.dto.FranchiseDTO;
+import co.com.anfega.api.dto.*;
 import co.com.anfega.api.helper.api.BaseHandler;
 import co.com.anfega.api.mapper.BranchDTOMapper;
 import co.com.anfega.api.mapper.FranchiseDTOMapper;
@@ -69,6 +66,17 @@ public class Handler extends BaseHandler {
                 .orElseThrow(() -> new IllegalArgumentException("El id del producto es obligatorio"));
         return productInputPort.delete(productName)
                 .then(ok("Producto eliminado con exito"));
+
+    }
+
+    public Mono<ServerResponse> listenUpdateStockProduct(ServerRequest serverRequest) {
+        String productId = serverRequest.queryParam("id")
+                .orElseThrow(() -> new IllegalArgumentException("El id del producto es obligatorio"));
+        return serverRequest.bodyToMono(UpdateStockProductRequestDTO.class)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
+                .flatMap(dto -> productInputPort.updateStock(productId, dto.getStock())
+                        .map(productDTOMapper::toResponse))
+                .flatMap(response -> ok("Stock actualizado con exito", response));
 
     }
 }

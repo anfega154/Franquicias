@@ -46,4 +46,24 @@ public class ProductRepositoryAdapter extends AdapterOperations<Product, Product
                     return Mono.error(new RuntimeException("Error al eliminar el producto: " + e.getMessage(), e));
                 });
     }
+
+    @Override
+    public Mono<Product> updateStock(String productId, long newStock) {
+        return repository.findById(productId)
+                .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado")))
+                .flatMap(existingProduct -> {
+                    existingProduct.setStock(newStock);
+                    return repository.save(existingProduct);
+                })
+                .map(updated -> new Product(
+                        updated.getId(),
+                        updated.getName(),
+                        updated.getStock()
+                ))
+                .onErrorResume(e -> {
+                    log.error("Error al actualizar stock: {}", e.getMessage());
+                    return Mono.error(new RuntimeException("Error al actualizar el stock del producto: " + e.getMessage(), e));
+                });
+    }
+
 }
