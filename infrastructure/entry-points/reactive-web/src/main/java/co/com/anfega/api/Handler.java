@@ -8,11 +8,18 @@ import co.com.anfega.api.mapper.ProductDTOMapper;
 import co.com.anfega.model.branch.gateways.BranchInputPort;
 import co.com.anfega.model.franchise.gateways.FranchiseInputPort;
 import co.com.anfega.model.product.gateways.ProductInputPort;
+import co.com.anfega.model.topproductperbranch.TopProductPerBranch;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -79,5 +86,12 @@ public class Handler extends BaseHandler {
                         .map(productDTOMapper::toResponse))
                 .flatMap(response -> ok("Stock actualizado con exito", response));
 
+    }
+
+    public Mono<ServerResponse> listenGetTopProductsPerBranch(ServerRequest serverRequest) {
+        return Mono.just(serverRequest.pathVariable("franchiseName"))
+                .flatMapMany(productInputPort::getTopProductPerBranch)
+                .collectList()
+                .flatMap(result -> ok("Consulta exitosa", result));
     }
 }

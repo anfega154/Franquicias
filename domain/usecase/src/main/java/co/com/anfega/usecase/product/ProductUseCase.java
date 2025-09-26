@@ -6,6 +6,8 @@ import co.com.anfega.model.franchise.gateways.FranchiseRepository;
 import co.com.anfega.model.product.Product;
 import co.com.anfega.model.product.gateways.ProductInputPort;
 import co.com.anfega.model.product.gateways.ProductRepository;
+import co.com.anfega.model.topproductperbranch.TopProductPerBranch;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class ProductUseCase implements ProductInputPort {
@@ -13,6 +15,8 @@ public class ProductUseCase implements ProductInputPort {
     private final ProductRepository productRepository;
     private final BranchRepository branchRepository;
     private final FranchiseRepository franchiseRepository;
+
+    private static final String DOES_NOT_EXIST = " no existe.";
 
     private static final String STOCK_NOT_NULL = "El stock del producto no puede ser nulo o negativo";
 
@@ -37,10 +41,10 @@ public class ProductUseCase implements ProductInputPort {
             return Mono.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
         }
         return franchiseRepository.findByName(franchiseName)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + " no existe.")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + DOES_NOT_EXIST)))
                 .flatMap(franchise ->
                         branchRepository.findByNameAndFranchiseId(branchName, franchise.getId())
-                                .switchIfEmpty(Mono.error(new IllegalArgumentException("La sucursal con nombre " + branchName + " no existe.")))
+                                .switchIfEmpty(Mono.error(new IllegalArgumentException("La sucursal con nombre " + branchName + DOES_NOT_EXIST)))
                                 .flatMap(branch -> productRepository.save(product, branch.getId()))
                 );
     }
@@ -61,4 +65,26 @@ public class ProductUseCase implements ProductInputPort {
         return productRepository.updateStock(productId, newStock);
     }
 
+    @Override
+    public Flux<TopProductPerBranch> getTopProductPerBranch(String franchiseName) {
+        if (franchiseName == null || franchiseName.isEmpty()) {
+            return Flux.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
+        }
+
+        return franchiseRepository.findByName(franchiseName)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + DOES_NOT_EXIST)))
+                .flatMapMany(franchise ->
+                        branchRepository.findAllByFranchiseId(franchise.getId())
+                                .flatMap(branch ->
+                                        productRepository.findTopByBranchId(branch.getId())
+                                                .map(product -> new TopProductPerBranch(
+                                                        branch.getId(),
+                                                        branch.getName(),
+                                                        product.getId(),
+                                                        product.getName(),
+                                                        product.getStock()
+                                                ))
+                                )
+                );
+    }
 }

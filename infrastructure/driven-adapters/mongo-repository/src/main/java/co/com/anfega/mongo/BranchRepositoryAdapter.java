@@ -7,7 +7,10 @@ import co.com.anfega.mongo.helper.AdapterOperations;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Collections;
 
 @Repository
 @Slf4j
@@ -45,5 +48,11 @@ public class BranchRepositoryAdapter extends AdapterOperations<Branch, BranchEnt
                     log.error(e.getMessage());
                     return Mono.error(new RuntimeException("Error al buscar la sucursal por nombre", e));
                 });
+    }
+
+    @Override
+    public Flux<Branch> findAllByFranchiseId(String franchiseId) {
+        return repository.findAllByFranchiseId(franchiseId)
+                .map(be -> new Branch(be.getId(), be.getName(), Collections.emptyList()));
     }
 }

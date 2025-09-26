@@ -66,4 +66,14 @@ public class ProductRepositoryAdapter extends AdapterOperations<Product, Product
                 });
     }
 
+    @Override
+    public Mono<Product> findTopByBranchId(String branchId) {
+        return repository.findFirstByBranchIdOrderByStockDesc(branchId)
+                .map(pe -> new Product(pe.getId(), pe.getName(), pe.getStock()))
+                .onErrorResume(e -> {
+                    log.error("Error en el query {}: {}", branchId, e.getMessage());
+                    return Mono.error(new RuntimeException("Error obteniendo top de productos por sucursal ", e));
+                });
+    }
+
 }

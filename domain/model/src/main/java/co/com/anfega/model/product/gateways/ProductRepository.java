@@ -7,4 +7,5 @@ public interface ProductRepository {
     Mono<Product> save(Product product, String branchId);
     Mono<Void> delete(String productId);
     Mono<Product> updateStock(String productId, long newStock);
+    Mono<Product> findTopByBranchId(String branchId);
 }

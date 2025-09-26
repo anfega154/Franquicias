@@ -11,4 +11,5 @@ public class FranchisePath {
     private String franchises;
     private String branches;
     private String products;
+    private String topProducts;
 }

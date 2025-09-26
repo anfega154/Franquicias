@@ -22,6 +22,7 @@ public class RouterRest {
                 .andRoute(POST(franchisePath.getBranches()), handler::listenSaveBranch)
                 .andRoute(POST(franchisePath.getProducts()), handler::listenSaveProduct)
                 .andRoute(DELETE(franchisePath.getProducts()), handler::listenDeleteProduct)
-                .andRoute(PUT(franchisePath.getProducts()), handler::listenUpdateStockProduct);
+                .andRoute(PUT(franchisePath.getProducts()), handler::listenUpdateStockProduct)
+                .andRoute(GET(franchisePath.getTopProducts()), handler::listenGetTopProductsPerBranch);
     }
 }
