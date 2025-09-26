@@ -35,4 +35,15 @@ public class ProductRepositoryAdapter extends AdapterOperations<Product, Product
                     return Mono.error(new RuntimeException("Error al guardar el producto", e));
                 });
     }
+
+    @Override
+    public Mono<Void> delete(String productId) {
+        return repository.findById(productId)
+                .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado")))
+                .flatMap(product -> repository.deleteById(productId))
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new RuntimeException("Error al eliminar el producto: " + e.getMessage(), e));
+                });
+    }
 }

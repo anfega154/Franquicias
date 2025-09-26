@@ -28,10 +28,12 @@ public class Handler extends BaseHandler {
     private final ProductInputPort productInputPort;
     private final ProductDTOMapper productDTOMapper;
 
+    private static final String BODY_EMPTY_ERROR = "El body no puede estar vacío";
+
 
     public Mono<ServerResponse> listenSaveFranchise(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(CreateFranchiseDTO.class)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("El body no puede estar vacío")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
                 .map(franchiseDTOMapper::toModel)
                 .flatMap(franchiseInputPort::save)
                 .map(franchiseDTOMapper::toResponse)
@@ -40,7 +42,7 @@ public class Handler extends BaseHandler {
 
     public Mono<ServerResponse> listenSaveBranch(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(CreateBranchDTO.class)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("El body no puede estar vacío")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
                 .flatMap(dto -> {
                     var branch = branchDTOMapper.toModel(dto);
                     var franchiseName = dto.getFranchiseName();
@@ -52,7 +54,7 @@ public class Handler extends BaseHandler {
 
     public Mono<ServerResponse> listenSaveProduct(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(CreateProductDTO.class)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("El body no puede estar vacío")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
                 .flatMap(dto -> {
                     var product = productDTOMapper.toModel(dto);
                     var branchName = dto.getBranchName();
@@ -60,5 +62,13 @@ public class Handler extends BaseHandler {
                             .map(productDTOMapper::toResponse);
                 })
                 .flatMap(response -> created("Producto creado con exito", response));
+    }
+
+    public Mono<ServerResponse> listenDeleteProduct(ServerRequest serverRequest) {
+        String productName = serverRequest.queryParam("id")
+                .orElseThrow(() -> new IllegalArgumentException("El id del producto es obligatorio"));
+        return productInputPort.delete(productName)
+                .then(ok("Producto eliminado con exito"));
+
     }
 }

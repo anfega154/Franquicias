@@ -32,4 +32,12 @@ public class ProductUseCase implements ProductInputPort {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("La suscursal con nombre " + branchName + " no existe.")))
                 .flatMap(branch -> productRepository.save(product, branchName));
     }
+
+    @Override
+    public Mono<Void> delete(String productId) {
+        if (productId == null || productId.isEmpty()) {
+            return Mono.error(new IllegalArgumentException("El ID del producto no puede estar vacío"));
+        }
+        return productRepository.delete(productId);
+    }
 }
