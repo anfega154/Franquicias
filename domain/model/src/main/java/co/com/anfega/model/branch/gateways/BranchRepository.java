@@ -5,5 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface BranchRepository {
     Mono<Branch> save(Branch branch, String idFranchise);
-    Mono<Branch> findByName(String name);
+    Mono<Branch> findByNameAndFranchiseId(String name, String idFranchise);
 }

@@ -2,6 +2,7 @@ package co.com.anfega.usecase.product;
 
 
 import co.com.anfega.model.branch.gateways.BranchRepository;
+import co.com.anfega.model.franchise.gateways.FranchiseRepository;
 import co.com.anfega.model.product.Product;
 import co.com.anfega.model.product.gateways.ProductInputPort;
 import co.com.anfega.model.product.gateways.ProductRepository;
@@ -11,16 +12,18 @@ public class ProductUseCase implements ProductInputPort {
 
     private final ProductRepository productRepository;
     private final BranchRepository branchRepository;
+    private final FranchiseRepository franchiseRepository;
 
     private static final String STOCK_NOT_NULL = "El stock del producto no puede ser nulo o negativo";
 
-    public ProductUseCase(ProductRepository productRepository, BranchRepository branchRepository) {
+    public ProductUseCase(ProductRepository productRepository, BranchRepository branchRepository, FranchiseRepository franchiseRepository) {
         this.productRepository = productRepository;
         this.branchRepository = branchRepository;
+        this.franchiseRepository = franchiseRepository;
     }
 
     @Override
-    public Mono<Product> save(Product product, String branchName) {
+    public Mono<Product> save(Product product, String branchName, String franchiseName) {
         if (product == null || product.getName().isEmpty()) {
             return Mono.error(new IllegalArgumentException("El nombre del producto no puede estar vacío"));
         }
@@ -28,11 +31,18 @@ public class ProductUseCase implements ProductInputPort {
             return Mono.error(new IllegalArgumentException(STOCK_NOT_NULL));
         }
         if (branchName == null || branchName.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El nombre de la suscursal no puede estar vacío"));
+            return Mono.error(new IllegalArgumentException("El nombre de la sucursal no puede estar vacío"));
         }
-        return branchRepository.findByName(branchName)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("La suscursal con nombre " + branchName + " no existe.")))
-                .flatMap(branch -> productRepository.save(product, branchName));
+        if (franchiseName == null || franchiseName.isEmpty()) {
+            return Mono.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
+        }
+        return franchiseRepository.findByName(franchiseName)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + " no existe.")))
+                .flatMap(franchise ->
+                        branchRepository.findByNameAndFranchiseId(branchName, franchise.getId())
+                                .switchIfEmpty(Mono.error(new IllegalArgumentException("La sucursal con nombre " + branchName + " no existe.")))
+                                .flatMap(branch -> productRepository.save(product, branch.getId()))
+                );
     }
 
     @Override

@@ -55,7 +55,8 @@ public class Handler extends BaseHandler {
                 .flatMap(dto -> {
                     var product = productDTOMapper.toModel(dto);
                     var branchName = dto.getBranchName();
-                    return productInputPort.save(product, branchName)
+                    var franchiseName = dto.getFranchiseName();
+                    return productInputPort.save(product, branchName, franchiseName)
                             .map(productDTOMapper::toResponse);
                 })
                 .flatMap(response -> created("Producto creado con exito", response));

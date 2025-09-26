@@ -35,8 +35,8 @@ public class BranchRepositoryAdapter extends AdapterOperations<Branch, BranchEnt
     }
 
     @Override
-    public Mono<Branch> findByName(String name) {
-        return repository.findByName(name)
+    public Mono<Branch> findByNameAndFranchiseId(String name, String franchiseId) {
+        return repository.findByNameAndFranchiseId(name, franchiseId)
                 .map(entity -> new Branch(
                         entity.getId(),
                         entity.getName()
