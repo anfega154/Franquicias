@@ -40,4 +40,19 @@ public class MongoRepositoryAdapter extends AdapterOperations<Franchise, Franchi
                     return Mono.error(new RuntimeException("Error al guardar la franquicia", e));
                 });
     }
+
+    @Override
+    public Mono<Franchise> findByName(String name) {
+        return repository.findByName(name)
+                .map(data -> {
+                    Franchise result = new Franchise();
+                    result.setId(data.getId());
+                    result.setName(data.getName());
+                    return result;
+                })
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new RuntimeException("Error al buscar la franquicia por nombre", e));
+                });
+    }
 }

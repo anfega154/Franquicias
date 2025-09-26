@@ -17,6 +17,6 @@ public class DefaultExceptionStrategy implements ExceptionStrategy {
 
     @Override
     public String getError(Throwable ex) {
-        return "Ha ocurrido un error inesperado: " + ex.getMessage();
+        return "Ha ocurrido un error inesperado";
     }
 }
