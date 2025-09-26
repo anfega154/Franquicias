@@ -14,6 +14,9 @@ public class FranchiseUseCase implements FranchiseInputPort {
 
     @Override
     public Mono<Franchise> save(Franchise franchise) {
+        if(franchise.getName()==null || franchise.getName().isEmpty()){
+            return Mono.error(new IllegalArgumentException("El nombre de la franquicia no puede ser nulo o vacío"));
+        }
         return franchiseRepository.save(franchise);
     }
 }

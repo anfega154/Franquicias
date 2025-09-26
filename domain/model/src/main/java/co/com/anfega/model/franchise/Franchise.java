@@ -3,12 +3,13 @@ package co.com.anfega.model.franchise;
 
 import co.com.anfega.model.branch.Branch;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Franchise {
     private String id;
     private String name;
-    private List<Branch> branches;
+    private List<Branch> branches = Arrays.asList();
 
     public Franchise() {
 
