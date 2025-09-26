@@ -10,4 +10,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FranchisePath {
     private String franchises;
     private String branches;
+    private String products;
 }

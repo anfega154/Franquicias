@@ -33,4 +33,17 @@ public class BranchRepositoryAdapter extends AdapterOperations<Branch, BranchEnt
                     return Mono.error(new RuntimeException("Error al guardar la sucursal", e));
                 });
     }
+
+    @Override
+    public Mono<Branch> findByName(String name) {
+        return repository.findByName(name)
+                .map(entity -> new Branch(
+                        entity.getId(),
+                        entity.getName()
+                ))
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new RuntimeException("Error al buscar la sucursal por nombre", e));
+                });
+    }
 }

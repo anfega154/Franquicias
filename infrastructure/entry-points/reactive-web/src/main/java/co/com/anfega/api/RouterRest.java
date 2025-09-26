@@ -19,6 +19,7 @@ public class RouterRest {
     @Bean
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(franchisePath.getFranchises()), handler::listenSaveFranchise)
-                .andRoute(POST(franchisePath.getBranches()), handler::listenSaveBranch);
+                .andRoute(POST(franchisePath.getBranches()), handler::listenSaveBranch)
+                .andRoute(POST(franchisePath.getProducts()), handler::listenSaveProduct);
     }
 }

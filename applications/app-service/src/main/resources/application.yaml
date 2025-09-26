@@ -31,3 +31,4 @@ routers:
   paths:
     franchises: "/api/v1/franquicias"
     branches: "/api/v1/sucursales"
+    products: "/api/v1/productos"

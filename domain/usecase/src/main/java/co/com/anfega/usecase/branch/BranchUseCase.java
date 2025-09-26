@@ -6,6 +6,8 @@ import co.com.anfega.model.branch.gateways.BranchRepository;
 import co.com.anfega.model.franchise.gateways.FranchiseRepository;
 import reactor.core.publisher.Mono;
 
+import java.util.NoSuchElementException;
+
 public class BranchUseCase implements BranchInputPort {
 
     private final FranchiseRepository franchiseRepository;
@@ -25,7 +27,7 @@ public class BranchUseCase implements BranchInputPort {
             return Mono.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
         }
         return franchiseRepository.findByName(franchiseName)
-                .switchIfEmpty(Mono.error(new java.util.NoSuchElementException("La franquicia no existe")))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("La franquicia no existe")))
                 .flatMap(franchise -> branchRepository.save(branch, franchise.getId()));
     }
 }
