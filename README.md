@@ -18,7 +18,6 @@ Repositorio en GitHub 👉 [anfega154/Franquicias](https://github.com/anfega154/
     - [Application](#application)
 - [Configuración](#configuración)
     - [application.yml](#applicationyml)
-    - [Variables de entorno](#variables-de-entorno)
 - [Persistencia](#persistencia)
 - [Ejecución del Proyecto](#ejecución-del-proyecto)
 - [API REST](#api-rest)
@@ -162,12 +161,6 @@ cd Franquicias
 | POST    | /api/v1/productos                                               | Crear un producto en una sucursal                   |
 | PUT     | /api/v1/productos?id={id}                                       | Actualizar stock de un producto                     |
 | DELETE  | /api/v1/productos?id={id}                                       | Eliminar un producto                                |
-| GET     | /api/v1/franchicias                                             | Listar todas las franquicias                        |
-| GET     | /api/v1/franquicias/{id}                                        | Obtener detalles de una franquicia                  |
-| GET     | /api/v1/sucursales                                              | Listar todas las sucursales                         |
-| GET     | /api/v1/sucursales/{id}                                         | Obtener detalles de una sucursal                    |
-| GET     | /api/v1/productos                                               | Listar todos los productos                          |
-| GET     | /api/v1/productos/{id}                                          | Obtener detalles de un producto                     |
 | GET     | /api/v1/franchises/{franchiseName}/top-products-per-branch      | Obtener el producto con mayor stock por sucursal    |
 
 ---
@@ -191,3 +184,11 @@ cd Franquicias
 ./gradlew jacocoTestReport
 ```
 - Reportes en: `build/reports/jacoco/test/html/index.html` 
+
+---
+
+## SonnarQube
+- Análisis de calidad de código con SonarQube.
+```bash
+./gradlew clean build sonar
+```
