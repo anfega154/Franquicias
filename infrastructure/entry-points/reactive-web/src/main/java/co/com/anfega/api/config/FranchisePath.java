@@ -1,0 +1,15 @@
+package co.com.anfega.api.config;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "routers.paths")
+public class FranchisePath {
+    private String franchises;
+    private String branches;
+    private String products;
+    private String topProducts;
+}
