@@ -3,7 +3,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: "mongodb+srv://andresganan_db_user:N5FUTWAPrIfTzklH@anfega.ybqhqud.mongodb.net/?retryWrites=true&w=majority&appName=anfega"
+      uri: ${MONGO_URI}
       database: "franchises"
   application:
     name: "Franquicias"

@@ -23,6 +23,8 @@ Repositorio en GitHub 👉 [anfega154/Franquicias](https://github.com/anfega154/
 - [API REST](#api-rest)
     - [Documentación Swagger](#documentación-swagger)
 - [Pruebas](#pruebas)
+- [SonnarQube](#sonnarqube)
+- [Despliegue en la Nube](#despliegue-en-la-nube)
 
 ---
 
@@ -195,3 +197,19 @@ cd Franquicias
 ```bash
 ./gradlew clean build sonar
 ```
+----
+## ☁️ Despliegue en la Nube
+
+El proyecto está desplegado en AWS ECS, lo que permite alta disponibilidad y escalabilidad.
+
+- **Load Balancer:**  
+  [http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com)
+
+- **Swagger UI:**  
+  [Documentación interactiva](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com/swagger-ui.html)
+
+- **OpenAPI Docs:**  
+  [Especificación OpenAPI (JSON)](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com/v3/api-docs)
+
+- **Imagen Docker en AWS ECR:**  
+  `502456973871.dkr.ecr.us-east-2.amazonaws.com/franq-api`
