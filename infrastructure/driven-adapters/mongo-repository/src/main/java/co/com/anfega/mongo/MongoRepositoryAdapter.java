@@ -55,4 +55,24 @@ public class MongoRepositoryAdapter extends AdapterOperations<Franchise, Franchi
                     return Mono.error(new RuntimeException("Error al buscar la franquicia por nombre", e));
                 });
     }
+
+    @Override
+    public Mono<Franchise> update(Franchise franchise) {
+        return repository.findById(franchise.getId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Franquicia " + franchise.getName() + " no encontrada")))
+                .flatMap(existingData -> {
+                    existingData.setName(franchise.getName());
+                    return repository.save(existingData);
+                })
+                .map(updatedData -> {
+                    Franchise result = new Franchise();
+                    result.setId(updatedData.getId());
+                    result.setName(updatedData.getName());
+                    return result;
+                })
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new RuntimeException("Error al actualizar la franquicia: " + e.getMessage(), e));
+                });
+    }
 }

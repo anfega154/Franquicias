@@ -8,18 +8,11 @@ import co.com.anfega.api.mapper.ProductDTOMapper;
 import co.com.anfega.model.branch.gateways.BranchInputPort;
 import co.com.anfega.model.franchise.gateways.FranchiseInputPort;
 import co.com.anfega.model.product.gateways.ProductInputPort;
-import co.com.anfega.model.topproductperbranch.TopProductPerBranch;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -42,6 +35,15 @@ public class Handler extends BaseHandler {
                 .flatMap(franchiseInputPort::save)
                 .map(franchiseDTOMapper::toResponse)
                 .flatMap(response -> created("Franquicia creada con exito", response));
+    }
+
+    public Mono<ServerResponse> listenUpdateFranchise(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(CreateFranchiseDTO.class)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
+                .map(franchiseDTOMapper::toModel)
+                .flatMap(franchiseInputPort::update)
+                .map(franchiseDTOMapper::toResponse)
+                .flatMap(response -> ok("Franquicia actualizada con exito", response));
     }
 
     public Mono<ServerResponse> listenSaveBranch(ServerRequest serverRequest) {

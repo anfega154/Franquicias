@@ -5,4 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface FranchiseInputPort {
     Mono<Franchise> save(Franchise franchise);
+    Mono<Franchise> update(Franchise franchise);
 }

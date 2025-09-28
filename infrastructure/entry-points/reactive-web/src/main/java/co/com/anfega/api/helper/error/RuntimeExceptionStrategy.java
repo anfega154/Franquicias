@@ -1,8 +1,10 @@
 package co.com.anfega.api.helper.error;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(1)
 public class RuntimeExceptionStrategy implements ExceptionStrategy {
     @Override
     public boolean supports(Throwable ex) {
@@ -16,6 +18,6 @@ public class RuntimeExceptionStrategy implements ExceptionStrategy {
 
     @Override
     public String getError(Throwable ex) {
-        return "Runtime exception occurred: " + ex.getMessage();
+        return ex.getMessage();
     }
 }

@@ -76,6 +76,47 @@ public class RouterRest {
                             }
                     )
             ),
+            @RouterOperation(
+                    path = "/api/v1/franquicias",
+                    produces = {"application/json"},
+                    consumes = {"application/json"},
+                    method = RequestMethod.PUT,
+                    beanClass = Handler.class,
+                    beanMethod = "listenUpdateFranchise",
+                    operation = @Operation(
+                            operationId = "UpdateFranchise",
+                            summary = "Actualizar franquicia",
+                            description = "Actualiza la información de una franquicia existente",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    description = "Información de la franquicia a actualizar",
+                                    content = @Content(
+                                            schema = @Schema(implementation = CreateFranchiseDTO.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Franquicia actualizada con exito",
+                                            content = @Content(
+                                                    schema = @Schema(implementation = FranchiseDTO.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación en los datos enviados",
+                                            content = @Content(schema = @Schema(example = """
+                                                    {
+                                                      "status": 400,
+                                                      "error": "Bad Request",
+                                                      "message": "El nombre de la franquicia es obligatorio",
+                                                      "path": "/api/v1/franquicias"
+                                                    }
+                                                    """))
+                                    )
+                            }
+                    )
+            ),
 
             @RouterOperation(
                     path = "/api/v1/sucursales",
@@ -252,6 +293,7 @@ public class RouterRest {
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(franchisePath.getFranchises()), handler::listenSaveFranchise)
+                .andRoute(PUT(franchisePath.getFranchises()), handler::listenUpdateFranchise)
                 .andRoute(POST(franchisePath.getBranches()), handler::listenSaveBranch)
                 .andRoute(POST(franchisePath.getProducts()), handler::listenSaveProduct)
                 .andRoute(PUT(franchisePath.getProducts()), handler::listenUpdateStockProduct)
