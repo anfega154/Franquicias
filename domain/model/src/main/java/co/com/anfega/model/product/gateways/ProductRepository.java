@@ -8,4 +8,5 @@ public interface ProductRepository {
     Mono<Void> delete(String productId);
     Mono<Product> updateStock(String productId, long newStock);
     Mono<Product> findTopByBranchId(String branchId);
+    Mono<Product> update(Product product);
 }

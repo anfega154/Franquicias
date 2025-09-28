@@ -12,4 +12,5 @@ public class FranchisePath {
     private String branches;
     private String products;
     private String topProducts;
+    private String productsUpdateStock;
 }

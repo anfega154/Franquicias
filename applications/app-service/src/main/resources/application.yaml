@@ -32,4 +32,5 @@ routers:
     franchises: "/api/v1/franquicias"
     branches: "/api/v1/sucursales"
     products: "/api/v1/productos"
+    productsUpdateStock: "/api/v1/productos/update-stock"
     topProducts: "/api/v1/franchises/{franchiseName}/top-products-per-branch"

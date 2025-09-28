@@ -240,9 +240,49 @@ public class RouterRest {
                             }
                     )
             ),
-
             @RouterOperation(
                     path = "/api/v1/productos",
+                    produces = {"application/json"},
+                    consumes = {"application/json"},
+                    method = RequestMethod.PUT,
+                    beanClass = Handler.class,
+                    beanMethod = "listenUpdateProduct",
+                    operation = @Operation(
+                            operationId = "updateProduct",
+                            summary = "Actualizar producto",
+                            description = "Actualiza la información de un producto existente",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    description = "Información del producto a actualizar",
+                                    content = @Content(
+                                            schema = @Schema(implementation = CreateProductDTO.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "201",
+                                            description = "Producto actualizado exitosamente",
+                                            content = @Content(
+                                                    schema = @Schema(implementation = ProductDTO.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación",
+                                            content = @Content(schema = @Schema(example = """
+                                                    {
+                                                      "status": 400,
+                                                      "error": "Bad Request",
+                                                      "message": "El nombre del producto es obligatorio",
+                                                      "path": "/api/v1/productos"
+                                                    }
+                                                    """))
+                                    )
+                            }
+                    )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/productos/update-stock",
                     produces = {"application/json"},
                     consumes = {"application/json"},
                     method = RequestMethod.PUT,
@@ -336,7 +376,8 @@ public class RouterRest {
                 .andRoute(POST(franchisePath.getBranches()), handler::listenSaveBranch)
                 .andRoute(PUT(franchisePath.getBranches()), handler::listenUpdateBranch)
                 .andRoute(POST(franchisePath.getProducts()), handler::listenSaveProduct)
-                .andRoute(PUT(franchisePath.getProducts()), handler::listenUpdateStockProduct)
+                .andRoute(PUT(franchisePath.getProducts()), handler::listenUpdateProduct)
+                .andRoute(PUT(franchisePath.getProductsUpdateStock()), handler::listenUpdateStockProduct)
                 .andRoute(DELETE(franchisePath.getProducts()), handler::listenDeleteProduct)
                 .andRoute(GET(franchisePath.getTopProducts()), handler::listenGetTopProductsPerBranch);
     }

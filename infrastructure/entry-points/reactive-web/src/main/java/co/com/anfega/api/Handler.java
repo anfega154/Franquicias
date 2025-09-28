@@ -80,6 +80,15 @@ public class Handler extends BaseHandler {
                 .flatMap(response -> created("Producto creado con exito", response));
     }
 
+    public Mono<ServerResponse> listenUpdateProduct(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(CreateProductDTO.class)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
+                .map(productDTOMapper::toModel)
+                .flatMap(productInputPort::update)
+                .map(productDTOMapper::toResponse)
+                .flatMap(response -> ok("Producto actualizado con exito", response));
+    }
+
     public Mono<ServerResponse> listenDeleteProduct(ServerRequest serverRequest) {
         String productName = serverRequest.queryParam("id")
                 .orElseThrow(() -> new IllegalArgumentException("El id del producto es obligatorio"));
