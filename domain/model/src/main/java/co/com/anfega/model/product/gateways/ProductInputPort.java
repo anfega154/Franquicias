@@ -10,4 +10,5 @@ public interface ProductInputPort {
     Mono<Void> delete(String productId);
     Mono<Product> updateStock(String productId, long newStock);
     Flux<TopProductPerBranch> getTopProductPerBranch(String franchiseName);
+    Mono<Product> update(Product product);
 }

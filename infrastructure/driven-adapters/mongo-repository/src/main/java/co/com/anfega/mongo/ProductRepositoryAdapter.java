@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ProductRepositoryAdapter extends AdapterOperations<Product, ProductEntity, String, ProductDBRepository>
         implements ProductRepository {
+    
+    private static final String PRODUCT_NOT_FOUND = "Producto no encontrado";
 
     public ProductRepositoryAdapter(ProductDBRepository repository, ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, Product.class));
@@ -39,7 +41,7 @@ public class ProductRepositoryAdapter extends AdapterOperations<Product, Product
     @Override
     public Mono<Void> delete(String productId) {
         return repository.findById(productId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado")))
+                .switchIfEmpty(Mono.error(new RuntimeException(PRODUCT_NOT_FOUND)))
                 .flatMap(product -> repository.deleteById(productId))
                 .onErrorResume(e -> {
                     log.error(e.getMessage());
@@ -50,7 +52,7 @@ public class ProductRepositoryAdapter extends AdapterOperations<Product, Product
     @Override
     public Mono<Product> updateStock(String productId, long newStock) {
         return repository.findById(productId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado")))
+                .switchIfEmpty(Mono.error(new RuntimeException(PRODUCT_NOT_FOUND)))
                 .flatMap(existingProduct -> {
                     existingProduct.setStock(newStock);
                     return repository.save(existingProduct);
@@ -73,6 +75,25 @@ public class ProductRepositoryAdapter extends AdapterOperations<Product, Product
                 .onErrorResume(e -> {
                     log.error("Error en el query {}: {}", branchId, e.getMessage());
                     return Mono.error(new RuntimeException("Error obteniendo top de productos por sucursal ", e));
+                });
+    }
+
+    @Override
+    public Mono<Product> update(Product product) {
+        return repository.findById(product.getId())
+                .switchIfEmpty(Mono.error(new RuntimeException(PRODUCT_NOT_FOUND)))
+                .flatMap(existingProduct -> {
+                    existingProduct.setName(product.getName());
+                    return repository.save(existingProduct);
+                })
+                .map(updated -> new Product(
+                        updated.getId(),
+                        updated.getName(),
+                        updated.getStock()
+                ))
+                .onErrorResume(e -> {
+                    log.error("Error al actualizar producto: {}", e.getMessage());
+                    return Mono.error(new RuntimeException("Error al actualizar el producto: " + e.getMessage(), e));
                 });
     }
 

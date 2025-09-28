@@ -28,7 +28,10 @@ public class ProductUseCase implements ProductInputPort {
 
     @Override
     public Mono<Product> save(Product product, String branchName, String franchiseName) {
-        if (product == null || product.getName().isEmpty()) {
+        if (product.getId() != null && !product.getId().isEmpty()) {
+            return Mono.error(new IllegalArgumentException("El ID del producto debe ser nulo o vacío al crear un nuevo producto"));
+        }
+        if (product.getName().isEmpty()) {
             return Mono.error(new IllegalArgumentException("El nombre del producto no puede estar vacío"));
         }
         if (product.getStock() == null || product.getStock() < 0) {
@@ -86,5 +89,16 @@ public class ProductUseCase implements ProductInputPort {
                                                 ))
                                 )
                 );
+    }
+
+    @Override
+    public Mono<Product> update(Product product) {
+        if (product.getId() == null || product.getId().isEmpty()) {
+            return Mono.error(new IllegalArgumentException("El ID del producto no puede estar vacío"));
+        }
+        if (product.getName() == null || product.getName().isEmpty()) {
+            return Mono.error(new IllegalArgumentException("El nombre del producto es obligatorio"));
+        }
+        return productRepository.update(product);
     }
 }

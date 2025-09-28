@@ -29,57 +29,77 @@ class BranchUseCaseTest {
         branchUseCase = new BranchUseCase(franchiseRepository, branchRepository);
     }
 
+    // ---------------- SAVE ----------------
+
     @Test
-    void shouldReturnErrorWhenBranchIsNull() {
-        StepVerifier.create(branchUseCase.save(null, "franchise"))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la sucursal no puede estar vacío"))
+    void shouldReturnErrorWhenBranchIdIsNotNullOnSave() {
+        Branch branch = new Branch();
+        branch.setId("123");
+        branch.setName("Sucursal 1");
+
+        StepVerifier.create(branchUseCase.save(branch, "franchise"))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("La sucursal no debe tener un id asignado"))
+                .verify();
+
+        verifyNoInteractions(franchiseRepository);
+        verifyNoInteractions(branchRepository);
+    }
+
+    @Test
+    void shouldReturnErrorWhenBranchNameIsNullOnSave() {
+        Branch branch = new Branch();
+        branch.setName(null);
+
+        StepVerifier.create(branchUseCase.save(branch, "franchise"))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El nombre de la sucursal es obligatorio"))
                 .verify();
     }
 
     @Test
-    void shouldReturnErrorWhenBranchNameIsEmpty() {
+    void shouldReturnErrorWhenBranchNameIsEmptyOnSave() {
         Branch branch = new Branch();
         branch.setName("");
 
         StepVerifier.create(branchUseCase.save(branch, "franchise"))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la sucursal no puede estar vacío"))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El nombre de la sucursal es obligatorio"))
                 .verify();
     }
 
     @Test
-    void shouldReturnErrorWhenFranchiseNameIsNull() {
+    void shouldReturnErrorWhenFranchiseNameIsNullOnSave() {
         Branch branch = new Branch();
         branch.setName("Sucursal 1");
 
         StepVerifier.create(branchUseCase.save(branch, null))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia no puede estar vacío"))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El nombre de la franquicia es obligatorio"))
                 .verify();
     }
 
     @Test
-    void shouldReturnErrorWhenFranchiseNameIsEmpty() {
+    void shouldReturnErrorWhenFranchiseNameIsEmptyOnSave() {
         Branch branch = new Branch();
         branch.setName("Sucursal 1");
 
         StepVerifier.create(branchUseCase.save(branch, ""))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia no puede estar vacío"))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El nombre de la franquicia es obligatorio"))
                 .verify();
     }
 
     @Test
-    void shouldReturnErrorWhenFranchiseDoesNotExist() {
+    void shouldReturnErrorWhenFranchiseDoesNotExistOnSave() {
         Branch branch = new Branch();
         branch.setName("Sucursal 1");
 
         when(franchiseRepository.findByName("franchise")).thenReturn(Mono.empty());
 
         StepVerifier.create(branchUseCase.save(branch, "franchise"))
-                .expectErrorMatches(throwable -> throwable instanceof NoSuchElementException &&
-                        throwable.getMessage().equals("La franquicia no existe"))
+                .expectErrorMatches(t -> t instanceof NoSuchElementException &&
+                        t.getMessage().equals("La franquicia no existe"))
                 .verify();
 
         verify(franchiseRepository, times(1)).findByName("franchise");
@@ -104,5 +124,70 @@ class BranchUseCaseTest {
 
         verify(franchiseRepository, times(1)).findByName("franchise");
         verify(branchRepository, times(1)).save(branch, "123");
+    }
+
+    // ---------------- UPDATE ----------------
+
+    @Test
+    void shouldReturnErrorWhenBranchNameIsNullOnUpdate() {
+        Branch branch = new Branch();
+        branch.setId("123");
+        branch.setName(null);
+
+        StepVerifier.create(branchUseCase.update(branch))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El nombre de la sucursal es obligatorio"))
+                .verify();
+    }
+
+    @Test
+    void shouldReturnErrorWhenBranchNameIsEmptyOnUpdate() {
+        Branch branch = new Branch();
+        branch.setId("123");
+        branch.setName("");
+
+        StepVerifier.create(branchUseCase.update(branch))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El nombre de la sucursal es obligatorio"))
+                .verify();
+    }
+
+    @Test
+    void shouldReturnErrorWhenBranchIdIsNullOnUpdate() {
+        Branch branch = new Branch();
+        branch.setId(null);
+        branch.setName("Sucursal 1");
+
+        StepVerifier.create(branchUseCase.update(branch))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El id de la sucursal es obligatorio"))
+                .verify();
+    }
+
+    @Test
+    void shouldReturnErrorWhenBranchIdIsEmptyOnUpdate() {
+        Branch branch = new Branch();
+        branch.setId("");
+        branch.setName("Sucursal 1");
+
+        StepVerifier.create(branchUseCase.update(branch))
+                .expectErrorMatches(t -> t instanceof IllegalArgumentException &&
+                        t.getMessage().equals("El id de la sucursal es obligatorio"))
+                .verify();
+    }
+
+    @Test
+    void shouldUpdateBranchWhenValid() {
+        Branch branch = new Branch();
+        branch.setId("123");
+        branch.setName("Sucursal Actualizada");
+
+        when(branchRepository.update(any(Branch.class))).thenReturn(Mono.just(branch));
+
+        StepVerifier.create(branchUseCase.update(branch))
+                .expectNext(branch)
+                .verifyComplete();
+
+        verify(branchRepository, times(1)).update(branch);
     }
 }
