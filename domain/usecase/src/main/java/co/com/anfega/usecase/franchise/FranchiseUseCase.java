@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 public class FranchiseUseCase implements FranchiseInputPort {
     private final FranchiseRepository franchiseRepository;
 
-    private static final String NAME_EMPTY_ERROR = "El nombre de la franquicia es obligatorio";
+    private static final String NAME_EMPTY_ERROR = "El nombre de la franquicia es obligatorio.";
 
     public FranchiseUseCase(FranchiseRepository franchiseRepository) {
         this.franchiseRepository = franchiseRepository;

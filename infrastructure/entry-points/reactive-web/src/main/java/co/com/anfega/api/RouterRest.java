@@ -117,7 +117,6 @@ public class RouterRest {
                             }
                     )
             ),
-
             @RouterOperation(
                     path = "/api/v1/sucursales",
                     produces = {"application/json"},
@@ -159,7 +158,47 @@ public class RouterRest {
                             }
                     )
             ),
-
+            @RouterOperation(
+                    path = "/api/v1/sucursales",
+                    produces = {"application/json"},
+                    consumes = {"application/json"},
+                    method = RequestMethod.PUT,
+                    beanClass = Handler.class,
+                    beanMethod = "listenUpdateBranch",
+                    operation = @Operation(
+                            operationId = "updateBranch",
+                            summary = "Actualizar sucursal",
+                            description = "Actualiza la información de una sucursal existente",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    description = "Información de la sucursal a actualizar",
+                                    content = @Content(
+                                            schema = @Schema(implementation = CreateBranchDTO.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "201",
+                                            description = "Sucursal actualizada exitosamente",
+                                            content = @Content(
+                                                    schema = @Schema(implementation = BranchDTO.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación",
+                                            content = @Content(schema = @Schema(example = """
+                                                    {
+                                                      "status": 400,
+                                                      "error": "Bad Request",
+                                                      "message": "El nombre de la sucursal es obligatorio",
+                                                      "path": "/api/v1/sucursales"
+                                                    }
+                                                    """))
+                                    )
+                            }
+                    )
+            ),
             @RouterOperation(
                     path = "/api/v1/productos",
                     produces = {"application/json"},
@@ -295,6 +334,7 @@ public class RouterRest {
         return route(POST(franchisePath.getFranchises()), handler::listenSaveFranchise)
                 .andRoute(PUT(franchisePath.getFranchises()), handler::listenUpdateFranchise)
                 .andRoute(POST(franchisePath.getBranches()), handler::listenSaveBranch)
+                .andRoute(PUT(franchisePath.getBranches()), handler::listenUpdateBranch)
                 .andRoute(POST(franchisePath.getProducts()), handler::listenSaveProduct)
                 .andRoute(PUT(franchisePath.getProducts()), handler::listenUpdateStockProduct)
                 .andRoute(DELETE(franchisePath.getProducts()), handler::listenDeleteProduct)

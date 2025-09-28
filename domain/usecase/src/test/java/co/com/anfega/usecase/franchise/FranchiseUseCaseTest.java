@@ -45,7 +45,7 @@ class FranchiseUseCaseTest {
 
         StepVerifier.create(franchiseUseCase.save(franchise))
                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia no puede ser nulo o vacío"))
+                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
                 .verify();
 
         verifyNoInteractions(franchiseRepository);
@@ -58,7 +58,7 @@ class FranchiseUseCaseTest {
 
         StepVerifier.create(franchiseUseCase.save(franchise))
                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia no puede ser nulo o vacío"))
+                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
                 .verify();
 
         verifyNoInteractions(franchiseRepository);
@@ -116,7 +116,7 @@ class FranchiseUseCaseTest {
 
         StepVerifier.create(franchiseUseCase.update(franchise))
                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia no puede ser nulo o vacío"))
+                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
                 .verify();
 
         verifyNoInteractions(franchiseRepository);
@@ -130,7 +130,7 @@ class FranchiseUseCaseTest {
 
         StepVerifier.create(franchiseUseCase.update(franchise))
                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia no puede ser nulo o vacío"))
+                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
                 .verify();
 
         verifyNoInteractions(franchiseRepository);

@@ -58,6 +58,15 @@ public class Handler extends BaseHandler {
                 .flatMap(response -> created("Sucursal creada con exito", response));
     }
 
+    public Mono<ServerResponse> listenUpdateBranch(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(CreateBranchDTO.class)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))
+                .map(branchDTOMapper::toModel)
+                .flatMap(branchInputPort::update)
+                .map(branchDTOMapper::toResponse)
+                .flatMap(response -> ok("Sucursal actualizada con exito", response));
+    }
+
     public Mono<ServerResponse> listenSaveProduct(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(CreateProductDTO.class)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(BODY_EMPTY_ERROR)))

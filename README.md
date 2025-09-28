@@ -154,14 +154,16 @@ cd Franquicias
 ## 🛠️ API REST
 ### Rutas principales
 
-| Método  | Endpoint                                                        | Descripción                                         |
-|---------|-----------------------------------------------------------------|-----------------------------------------------------|
-| POST    | /api/v1/franquicias                                             | Crear una franquicia                                |
-| POST    | /api/v1/sucursales                                              | Crear una sucursal en una franquicia                |
-| POST    | /api/v1/productos                                               | Crear un producto en una sucursal                   |
-| PUT     | /api/v1/productos?id={id}                                       | Actualizar stock de un producto                     |
-| DELETE  | /api/v1/productos?id={id}                                       | Eliminar un producto                                |
-| GET     | /api/v1/franchises/{franchiseName}/top-products-per-branch      | Obtener el producto con mayor stock por sucursal    |
+| Método | Endpoint                                                        | Descripción                                      |
+|--------|-----------------------------------------------------------------|--------------------------------------------------|
+| POST   | /api/v1/franquicias                                             | Crear una franquicia                             |
+| PUT    | /api/v1/franquicias                                             | Actualizar una franquicia                        |
+| POST   | /api/v1/sucursales                                              | Crear una sucursal en una franquicia             |
+| PUT    | /api/v1/sucursales                                              | Actualizar una sucursal en una franquicia        |
+| POST   | /api/v1/productos                                               | Crear un producto en una sucursal                |
+| PUT    | /api/v1/productos?id={id}                                       | Actualizar stock de un producto                  |
+| DELETE | /api/v1/productos?id={id}                                       | Eliminar un producto                             |
+| GET    | /api/v1/franchises/{franchiseName}/top-products-per-branch      | Obtener el producto con mayor stock por sucursal |
 
 ---
 
