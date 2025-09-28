@@ -23,6 +23,8 @@ Repositorio en GitHub 👉 [anfega154/Franquicias](https://github.com/anfega154/
 - [API REST](#api-rest)
     - [Documentación Swagger](#documentación-swagger)
 - [Pruebas](#pruebas)
+- [SonnarQube](#sonnarqube)
+- [Despliegue en la Nube](#despliegue-en-la-nube)
 
 ---
 
@@ -154,14 +156,17 @@ cd Franquicias
 ## 🛠️ API REST
 ### Rutas principales
 
-| Método  | Endpoint                                                        | Descripción                                         |
-|---------|-----------------------------------------------------------------|-----------------------------------------------------|
-| POST    | /api/v1/franquicias                                             | Crear una franquicia                                |
-| POST    | /api/v1/sucursales                                              | Crear una sucursal en una franquicia                |
-| POST    | /api/v1/productos                                               | Crear un producto en una sucursal                   |
-| PUT     | /api/v1/productos?id={id}                                       | Actualizar stock de un producto                     |
-| DELETE  | /api/v1/productos?id={id}                                       | Eliminar un producto                                |
-| GET     | /api/v1/franchises/{franchiseName}/top-products-per-branch      | Obtener el producto con mayor stock por sucursal    |
+| Método | Endpoint                                                   | Descripción                                      |
+|--------|------------------------------------------------------------|--------------------------------------------------|
+| POST   | /api/v1/franquicias                                        | Crear una franquicia                             |
+| PUT    | /api/v1/franquicias                                        | Actualizar una franquicia                        |
+| POST   | /api/v1/sucursales                                         | Crear una sucursal en una franquicia             |
+| PUT    | /api/v1/sucursales                                         | Actualizar una sucursal en una franquicia        |
+| POST   | /api/v1/productos                                          | Crear un producto en una sucursal                |
+| PUT    | /api/v1/productos                                          | Actualizar un producto en una sucursal           |
+| PUT    | /api/v1/productos/update-stock?id={id}                     | Actualizar stock de un producto                  |
+| DELETE | /api/v1/productos?id={id}                                  | Eliminar un producto                             |
+| GET    | /api/v1/franchises/{franchiseName}/top-products-per-branch | Obtener el producto con mayor stock por sucursal |
 
 ---
 
@@ -192,3 +197,19 @@ cd Franquicias
 ```bash
 ./gradlew clean build sonar
 ```
+----
+## ☁️ Despliegue en la Nube
+
+El proyecto está desplegado en AWS ECS, lo que permite alta disponibilidad y escalabilidad.
+
+- **Load Balancer:**  
+  [http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com)
+
+- **Swagger UI:**  
+  [Documentación interactiva](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com/swagger-ui.html)
+
+- **OpenAPI Docs:**  
+  [Especificación OpenAPI (JSON)](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com/v3/api-docs)
+
+- **Imagen Docker en AWS ECR:**  
+  `502456973871.dkr.ecr.us-east-2.amazonaws.com/franq-api`

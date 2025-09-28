@@ -55,4 +55,22 @@ public class BranchRepositoryAdapter extends AdapterOperations<Branch, BranchEnt
         return repository.findAllByFranchiseId(franchiseId)
                 .map(be -> new Branch(be.getId(), be.getName(), Collections.emptyList()));
     }
+
+    @Override
+    public Mono<Branch> update(Branch branch) {
+        return repository.findById(branch.getId())
+                .switchIfEmpty(Mono.error(new RuntimeException("No se encontró la sucursal " + branch.getName())))
+                .flatMap(existingEntity -> {
+                    existingEntity.setName(branch.getName());
+                    return repository.save(existingEntity);
+                })
+                .map(updatedEntity -> new Branch(
+                        updatedEntity.getId(),
+                        updatedEntity.getName()
+                ))
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new RuntimeException("Error al actualizar la sucursal: " + e.getMessage(), e));
+                });
+    }
 }

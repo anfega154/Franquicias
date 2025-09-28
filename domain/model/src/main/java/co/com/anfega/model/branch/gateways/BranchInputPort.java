@@ -5,5 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface BranchInputPort {
     Mono<Branch> save(Branch branch, String franchiseName);
-
+    Mono<Branch> update(Branch branch);
 }

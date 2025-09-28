@@ -33,10 +33,15 @@ class ProductUseCaseTest {
     // -------------------- SAVE --------------------
 
     @Test
-    void saveShouldReturnErrorWhenProductIsNull() {
-        StepVerifier.create(productUseCase.save(null, "branch", "franchise"))
+    void saveShouldReturnErrorWhenProductHasId() {
+        Product product = new Product();
+        product.setId("p1");
+        product.setName("Prod");
+        product.setStock(10L);
+
+        StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
                 .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El nombre del producto no puede estar vacío"))
+                        e.getMessage().equals("El ID del producto debe ser nulo o vacío al crear un nuevo producto"))
                 .verify();
     }
 
@@ -135,7 +140,6 @@ class ProductUseCaseTest {
     @Test
     void saveShouldSaveProductSuccessfully() {
         Product product = new Product();
-        product.setId("p1");
         product.setName("P1");
         product.setStock(10L);
 
@@ -247,6 +251,46 @@ class ProductUseCaseTest {
                                 top.getBranchId().equals("b1") &&
                                 top.getProductId().equals("p1") &&
                                 top.getStock() == 30L)
+                .verifyComplete();
+    }
+
+    // -------------------- UPDATE --------------------
+
+    @Test
+    void updateShouldReturnErrorWhenIdIsEmpty() {
+        Product product = new Product();
+        product.setId("");
+        product.setName("Prod");
+
+        StepVerifier.create(productUseCase.update(product))
+                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
+                        e.getMessage().equals("El ID del producto no puede estar vacío"))
+                .verify();
+    }
+
+    @Test
+    void updateShouldReturnErrorWhenNameIsEmpty() {
+        Product product = new Product();
+        product.setId("p1");
+        product.setName("");
+
+        StepVerifier.create(productUseCase.update(product))
+                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
+                        e.getMessage().equals("El nombre del producto es obligatorio"))
+                .verify();
+    }
+
+    @Test
+    void updateShouldUpdateSuccessfully() {
+        Product product = new Product();
+        product.setId("p1");
+        product.setName("Prod");
+        product.setStock(50L);
+
+        when(productRepository.update(product)).thenReturn(Mono.just(product));
+
+        StepVerifier.create(productUseCase.update(product))
+                .expectNext(product)
                 .verifyComplete();
     }
 }
