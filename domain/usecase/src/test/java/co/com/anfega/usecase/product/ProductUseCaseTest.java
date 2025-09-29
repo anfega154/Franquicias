@@ -33,83 +33,8 @@ class ProductUseCaseTest {
     // -------------------- SAVE --------------------
 
     @Test
-    void saveShouldReturnErrorWhenProductHasId() {
-        Product product = new Product();
-        product.setId("p1");
-        product.setName("Prod");
-        product.setStock(10L);
-
-        StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El ID del producto debe ser nulo o vacío al crear un nuevo producto"))
-                .verify();
-    }
-
-    @Test
-    void saveShouldReturnErrorWhenProductNameIsEmpty() {
-        Product product = new Product();
-        product.setName("");
-
-        StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El nombre del producto no puede estar vacío"))
-                .verify();
-    }
-
-    @Test
-    void saveShouldReturnErrorWhenStockIsNull() {
-        Product product = new Product();
-        product.setName("P1");
-        product.setStock(null);
-
-        StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El stock del producto no puede ser nulo o negativo"))
-                .verify();
-    }
-
-    @Test
-    void saveShouldReturnErrorWhenStockIsNegative() {
-        Product product = new Product();
-        product.setName("P1");
-        product.setStock(-1L);
-
-        StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El stock del producto no puede ser nulo o negativo"))
-                .verify();
-    }
-
-    @Test
-    void saveShouldReturnErrorWhenBranchNameIsEmpty() {
-        Product product = new Product();
-        product.setName("P1");
-        product.setStock(10L);
-
-        StepVerifier.create(productUseCase.save(product, "", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El nombre de la sucursal no puede estar vacío"))
-                .verify();
-    }
-
-    @Test
-    void saveShouldReturnErrorWhenFranchiseNameIsEmpty() {
-        Product product = new Product();
-        product.setName("P1");
-        product.setStock(10L);
-
-        StepVerifier.create(productUseCase.save(product, "branch", ""))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El nombre de la franquicia no puede estar vacío"))
-                .verify();
-    }
-
-    @Test
     void saveShouldReturnErrorWhenFranchiseNotFound() {
         Product product = new Product();
-        product.setName("P1");
-        product.setStock(10L);
-
         when(franchiseRepository.findByName("franchise")).thenReturn(Mono.empty());
 
         StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
@@ -121,12 +46,9 @@ class ProductUseCaseTest {
     @Test
     void saveShouldReturnErrorWhenBranchNotFound() {
         Product product = new Product();
-        product.setName("P1");
-        product.setStock(10L);
 
         Franchise franchise = new Franchise();
         franchise.setId("f1");
-        franchise.setName("franchise");
 
         when(franchiseRepository.findByName("franchise")).thenReturn(Mono.just(franchise));
         when(branchRepository.findByNameAndFranchiseId("branch", "f1")).thenReturn(Mono.empty());
@@ -156,17 +78,11 @@ class ProductUseCaseTest {
         StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
                 .expectNext(product)
                 .verifyComplete();
+
+        verify(productRepository).save(product, "b1");
     }
 
     // -------------------- DELETE --------------------
-
-    @Test
-    void deleteShouldReturnErrorWhenProductIdIsEmpty() {
-        StepVerifier.create(productUseCase.delete(""))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El ID del producto no puede estar vacío"))
-                .verify();
-    }
 
     @Test
     void deleteShouldDeleteProductSuccessfully() {
@@ -174,25 +90,11 @@ class ProductUseCaseTest {
 
         StepVerifier.create(productUseCase.delete("p1"))
                 .verifyComplete();
+
+        verify(productRepository).delete("p1");
     }
 
     // -------------------- UPDATE STOCK --------------------
-
-    @Test
-    void updateStockShouldReturnErrorWhenProductIdIsEmpty() {
-        StepVerifier.create(productUseCase.updateStock("", 5))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El stock del producto no puede ser nulo o negativo"))
-                .verify();
-    }
-
-    @Test
-    void updateStockShouldReturnErrorWhenStockIsNegative() {
-        StepVerifier.create(productUseCase.updateStock("p1", -1))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El stock del producto no puede ser nulo o negativo"))
-                .verify();
-    }
 
     @Test
     void updateStockShouldUpdateSuccessfully() {
@@ -205,17 +107,11 @@ class ProductUseCaseTest {
         StepVerifier.create(productUseCase.updateStock("p1", 20L))
                 .expectNext(product)
                 .verifyComplete();
+
+        verify(productRepository).updateStock("p1", 20L);
     }
 
     // -------------------- GET TOP PRODUCT PER BRANCH --------------------
-
-    @Test
-    void getTopShouldReturnErrorWhenFranchiseNameIsEmpty() {
-        StepVerifier.create(productUseCase.getTopProductPerBranch(""))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El nombre de la franquicia no puede estar vacío"))
-                .verify();
-    }
 
     @Test
     void getTopShouldReturnErrorWhenFranchiseNotFound() {
@@ -252,33 +148,11 @@ class ProductUseCaseTest {
                                 top.getProductId().equals("p1") &&
                                 top.getStock() == 30L)
                 .verifyComplete();
+
+        verify(productRepository).findTopByBranchId("b1");
     }
 
     // -------------------- UPDATE --------------------
-
-    @Test
-    void updateShouldReturnErrorWhenIdIsEmpty() {
-        Product product = new Product();
-        product.setId("");
-        product.setName("Prod");
-
-        StepVerifier.create(productUseCase.update(product))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El ID del producto no puede estar vacío"))
-                .verify();
-    }
-
-    @Test
-    void updateShouldReturnErrorWhenNameIsEmpty() {
-        Product product = new Product();
-        product.setId("p1");
-        product.setName("");
-
-        StepVerifier.create(productUseCase.update(product))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                        e.getMessage().equals("El nombre del producto es obligatorio"))
-                .verify();
-    }
 
     @Test
     void updateShouldUpdateSuccessfully() {
@@ -292,5 +166,56 @@ class ProductUseCaseTest {
         StepVerifier.create(productUseCase.update(product))
                 .expectNext(product)
                 .verifyComplete();
+
+        verify(productRepository).update(product);
+    }
+
+    // -------------------- ERROR  --------------------
+
+    @Test
+    void shouldReturnErrorWhenSaveFails() {
+        Product product = new Product();
+
+        Franchise franchise = new Franchise();
+        franchise.setId("f1");
+
+        Branch branch = new Branch();
+        branch.setId("b1");
+
+        when(franchiseRepository.findByName("franchise")).thenReturn(Mono.just(franchise));
+        when(branchRepository.findByNameAndFranchiseId("branch", "f1")).thenReturn(Mono.just(branch));
+        when(productRepository.save(any(Product.class), eq("b1")))
+                .thenReturn(Mono.error(new RuntimeException("DB error")));
+
+        StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException
+                        && throwable.getMessage().equals("DB error"))
+                .verify();
+
+        verify(productRepository, times(1)).save(product, "b1");
+    }
+
+    @Test
+    void shouldReturnErrorWhenDeleteFails() {
+        when(productRepository.delete("p1"))
+                .thenReturn(Mono.error(new RuntimeException("DB error")));
+
+        StepVerifier.create(productUseCase.delete("p1"))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException
+                        && throwable.getMessage().equals("DB error"))
+                .verify();
+
+        verify(productRepository, times(1)).delete("p1");
+    }
+
+    @Test
+    void shouldReturnErrorWhenUpdateStockFails() {
+        when(productRepository.updateStock("p1", 20L))
+                .thenReturn(Mono.error(new RuntimeException("DB error")));
+        StepVerifier.create(productUseCase.updateStock("p1", 20L))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException
+                        && throwable.getMessage().equals("DB error"))
+                .verify();
+        verify(productRepository, times(1)).updateStock("p1", 20L);
     }
 }

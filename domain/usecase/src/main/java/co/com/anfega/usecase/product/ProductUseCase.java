@@ -18,8 +18,6 @@ public class ProductUseCase implements ProductInputPort {
 
     private static final String DOES_NOT_EXIST = " no existe.";
 
-    private static final String STOCK_NOT_NULL = "El stock del producto no puede ser nulo o negativo";
-
     public ProductUseCase(ProductRepository productRepository, BranchRepository branchRepository, FranchiseRepository franchiseRepository) {
         this.productRepository = productRepository;
         this.branchRepository = branchRepository;
@@ -49,10 +47,6 @@ public class ProductUseCase implements ProductInputPort {
 
     @Override
     public Flux<TopProductPerBranch> getTopProductPerBranch(String franchiseName) {
-        if (franchiseName == null || franchiseName.isEmpty()) {
-            return Flux.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
-        }
-
         return franchiseRepository.findByName(franchiseName)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + DOES_NOT_EXIST)))
                 .flatMapMany(franchise ->

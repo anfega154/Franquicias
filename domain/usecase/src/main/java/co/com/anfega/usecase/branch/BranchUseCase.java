@@ -13,8 +13,6 @@ public class BranchUseCase implements BranchInputPort {
     private final FranchiseRepository franchiseRepository;
     private final BranchRepository branchRepository;
 
-    private static final String NAME_REQUIRED = "El nombre de la sucursal es obligatorio";
-
     public BranchUseCase(FranchiseRepository franchiseRepository, BranchRepository branchRepository) {
         this.franchiseRepository = franchiseRepository;
         this.branchRepository = branchRepository;

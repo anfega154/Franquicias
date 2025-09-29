@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -144,8 +145,11 @@ public class Handler extends BaseHandler {
     }
 
     public Mono<ServerResponse> listenGetTopProductsPerBranch(ServerRequest serverRequest) {
-        return Mono.just(serverRequest.pathVariable("franchiseName"))
-                .flatMapMany(productInputPort::getTopProductPerBranch)
+        String franchiseName = serverRequest.pathVariable("franchiseName");
+        if (franchiseName == null || franchiseName.isEmpty()) {
+            return Mono.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
+        }
+        return productInputPort.getTopProductPerBranch(franchiseName)
                 .collectList()
                 .flatMap(result -> ok("Consulta exitosa", result));
     }
