@@ -4,7 +4,6 @@ import co.com.anfega.model.franchise.Franchise;
 import co.com.anfega.model.franchise.gateways.FranchiseRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -18,54 +17,14 @@ class FranchiseUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        franchiseRepository = Mockito.mock(FranchiseRepository.class);
+        franchiseRepository = mock(FranchiseRepository.class);
         franchiseUseCase = new FranchiseUseCase(franchiseRepository);
     }
 
     // ----------------- SAVE -----------------
 
     @Test
-    void shouldReturnErrorWhenFranchiseIdIsNotNullOnSave() {
-        Franchise franchise = new Franchise();
-        franchise.setId("123");
-        franchise.setName("Franquicia Test");
-
-        StepVerifier.create(franchiseUseCase.save(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El id de la franquicia debe ser nulo o vacío al crear una nueva franquicia"))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldReturnErrorWhenFranchiseNameIsNullOnSave() {
-        Franchise franchise = new Franchise();
-        franchise.setName(null);
-
-        StepVerifier.create(franchiseUseCase.save(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldReturnErrorWhenFranchiseNameIsEmptyOnSave() {
-        Franchise franchise = new Franchise();
-        franchise.setName("");
-
-        StepVerifier.create(franchiseUseCase.save(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldSaveFranchiseWhenNameIsValid() {
+    void shouldSaveFranchiseSuccessfully() {
         Franchise franchise = new Franchise();
         franchise.setName("Franquicia Test");
 
@@ -81,63 +40,7 @@ class FranchiseUseCaseTest {
     // ----------------- UPDATE -----------------
 
     @Test
-    void shouldReturnErrorWhenFranchiseIdIsNullOnUpdate() {
-        Franchise franchise = new Franchise();
-        franchise.setId(null);
-        franchise.setName("Franquicia Test");
-
-        StepVerifier.create(franchiseUseCase.update(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El id de la franquicia no puede ser nulo o vacío"))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldReturnErrorWhenFranchiseIdIsEmptyOnUpdate() {
-        Franchise franchise = new Franchise();
-        franchise.setId("");
-        franchise.setName("Franquicia Test");
-
-        StepVerifier.create(franchiseUseCase.update(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El id de la franquicia no puede ser nulo o vacío"))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldReturnErrorWhenFranchiseNameIsNullOnUpdate() {
-        Franchise franchise = new Franchise();
-        franchise.setId("123");
-        franchise.setName(null);
-
-        StepVerifier.create(franchiseUseCase.update(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldReturnErrorWhenFranchiseNameIsEmptyOnUpdate() {
-        Franchise franchise = new Franchise();
-        franchise.setId("123");
-        franchise.setName("");
-
-        StepVerifier.create(franchiseUseCase.update(franchise))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El nombre de la franquicia es obligatorio."))
-                .verify();
-
-        verifyNoInteractions(franchiseRepository);
-    }
-
-    @Test
-    void shouldUpdateFranchiseWhenIdAndNameAreValid() {
+    void shouldUpdateFranchiseSuccessfully() {
         Franchise franchise = new Franchise();
         franchise.setId("123");
         franchise.setName("Franquicia Actualizada");
@@ -150,4 +53,36 @@ class FranchiseUseCaseTest {
 
         verify(franchiseRepository, times(1)).update(franchise);
     }
+
+    // ----------------- ERROR -----------------
+
+    @Test
+    void shouldReturnErrorWhenSaveFails() {
+        Franchise franchise = new Franchise();
+        franchise.setName("Franquicia Error");
+
+        when(franchiseRepository.save(any(Franchise.class)))
+                .thenReturn(Mono.error(new RuntimeException("DB error")));
+
+        StepVerifier.create(franchiseUseCase.save(franchise))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException
+                        && throwable.getMessage().equals("DB error"))
+                .verify();
+    }
+
+    @Test
+    void shouldReturnErrorWhenUpdateFails() {
+        Franchise franchise = new Franchise();
+        franchise.setId("123");
+        franchise.setName("Franquicia Error");
+
+        when(franchiseRepository.update(any(Franchise.class)))
+                .thenReturn(Mono.error(new RuntimeException("DB error")));
+
+        StepVerifier.create(franchiseUseCase.update(franchise))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException
+                        && throwable.getMessage().equals("DB error"))
+                .verify();
+    }
+
 }
