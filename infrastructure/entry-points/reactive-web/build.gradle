@@ -9,4 +9,6 @@ dependencies {
     implementation "org.springdoc:springdoc-openapi-starter-common:2.6.0"
     annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
     implementation "jakarta.validation:jakarta.validation-api:$jakartaValidationVersion"
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    implementation 'org.glassfish:jakarta.el:4.0.2'
 }
