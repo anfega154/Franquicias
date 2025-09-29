@@ -18,8 +18,6 @@ public class ProductUseCase implements ProductInputPort {
 
     private static final String DOES_NOT_EXIST = " no existe.";
 
-    private static final String STOCK_NOT_NULL = "El stock del producto no puede ser nulo o negativo";
-
     public ProductUseCase(ProductRepository productRepository, BranchRepository branchRepository, FranchiseRepository franchiseRepository) {
         this.productRepository = productRepository;
         this.branchRepository = branchRepository;
@@ -28,21 +26,6 @@ public class ProductUseCase implements ProductInputPort {
 
     @Override
     public Mono<Product> save(Product product, String branchName, String franchiseName) {
-        if (product.getId() != null && !product.getId().isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El ID del producto debe ser nulo o vacío al crear un nuevo producto"));
-        }
-        if (product.getName().isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El nombre del producto no puede estar vacío"));
-        }
-        if (product.getStock() == null || product.getStock() < 0) {
-            return Mono.error(new IllegalArgumentException(STOCK_NOT_NULL));
-        }
-        if (branchName == null || branchName.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El nombre de la sucursal no puede estar vacío"));
-        }
-        if (franchiseName == null || franchiseName.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
-        }
         return franchiseRepository.findByName(franchiseName)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + DOES_NOT_EXIST)))
                 .flatMap(franchise ->
@@ -54,26 +37,16 @@ public class ProductUseCase implements ProductInputPort {
 
     @Override
     public Mono<Void> delete(String productId) {
-        if (productId == null || productId.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El ID del producto no puede estar vacío"));
-        }
         return productRepository.delete(productId);
     }
 
     @Override
     public Mono<Product> updateStock(String productId, long newStock) {
-        if (newStock < 0 || productId == null || productId.isEmpty()) {
-            return Mono.error(new IllegalArgumentException(STOCK_NOT_NULL));
-        }
         return productRepository.updateStock(productId, newStock);
     }
 
     @Override
     public Flux<TopProductPerBranch> getTopProductPerBranch(String franchiseName) {
-        if (franchiseName == null || franchiseName.isEmpty()) {
-            return Flux.error(new IllegalArgumentException("El nombre de la franquicia no puede estar vacío"));
-        }
-
         return franchiseRepository.findByName(franchiseName)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia con nombre " + franchiseName + DOES_NOT_EXIST)))
                 .flatMapMany(franchise ->
@@ -93,12 +66,6 @@ public class ProductUseCase implements ProductInputPort {
 
     @Override
     public Mono<Product> update(Product product) {
-        if (product.getId() == null || product.getId().isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El ID del producto no puede estar vacío"));
-        }
-        if (product.getName() == null || product.getName().isEmpty()) {
-            return Mono.error(new IllegalArgumentException("El nombre del producto es obligatorio"));
-        }
         return productRepository.update(product);
     }
 }
