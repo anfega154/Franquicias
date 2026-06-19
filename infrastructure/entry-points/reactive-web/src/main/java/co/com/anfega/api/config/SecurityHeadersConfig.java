@@ -1,5 +1,6 @@
 package co.com.anfega.api.config;
 
+import co.com.anfega.model.common.constants.Constants;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -13,12 +14,12 @@ public class SecurityHeadersConfig implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         HttpHeaders headers = exchange.getResponse().getHeaders();
-        headers.set("Content-Security-Policy", "default-src 'self'; frame-ancestors 'self'; form-action 'self'");
-        headers.set("Strict-Transport-Security", "max-age=31536000;");
-        headers.set("X-Content-Type-Options", "nosniff");
-        headers.set("Cache-Control", "no-store");
-        headers.set("Pragma", "no-cache");
-        headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+        headers.set(Constants.CONTENT_SECURITY_POLICY_HEADER, Constants.CONTENT_SECURITY_POLICY_VALUE);
+        headers.set(Constants.STRICT_TRANSPORT_SECURITY_HEADER, Constants.STRICT_TRANSPORT_SECURITY_VALUE);
+        headers.set(Constants.X_CONTENT_TYPE_OPTIONS_HEADER, Constants.X_CONTENT_TYPE_OPTIONS_VALUE);
+        headers.set(Constants.CACHE_CONTROL_HEADER, Constants.CACHE_CONTROL_VALUE);
+        headers.set(Constants.PRAGMA_HEADER, Constants.PRAGMA_VALUE);
+        headers.set(Constants.REFERRER_POLICY_HEADER, Constants.REFERRER_POLICY_VALUE);
         return chain.filter(exchange);
     }
 }

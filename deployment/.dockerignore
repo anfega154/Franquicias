@@ -1,0 +1,8 @@
+.gradle
+build
+build-cache
+.idea
+.git
+**/build
+**/.DS_Store
+context

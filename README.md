@@ -86,7 +86,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: "mongodb+srv://<user>:<password>@anfega.ybqhqud.mongodb.net/?retryWrites=true&w=majority&appName=anfega"
+      uri: ${MONGO_URI}
       database: "franchises"
   application:
     name: "Franquicias"

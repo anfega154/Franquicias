@@ -1,5 +1,6 @@
 package co.com.anfega.api.helper.api;
 
+import co.com.anfega.model.common.constants.Constants;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -14,20 +15,21 @@ import java.util.Set;
 @Slf4j
 public abstract class BaseHandler {
 
-    protected <T> Mono<ServerResponse> ok(String message, T body) {
-        log.debug("Respuesta OK: {} - {}", message, body);
-        LocalApiResponse<T> response = new LocalApiResponse<>(message, body);
+    protected <T> Mono<ServerResponse> ok(String traceId, String message, T body) {
+        log.info(Constants.LOG_RESPONSE_SUCCESS, traceId, message);
+        LocalApiResponse<T> response = new LocalApiResponse<>(Constants.SUCCESS_CODE, message, traceId, body);
         return ServerResponse.ok().bodyValue(response);
     }
 
-    protected <T> Mono<ServerResponse> ok(String message) {
-        LocalApiResponse<T> response = new LocalApiResponse<>(message);
+    protected <T> Mono<ServerResponse> ok(String traceId, String message) {
+        log.info(Constants.LOG_RESPONSE_SUCCESS, traceId, message);
+        LocalApiResponse<T> response = new LocalApiResponse<>(Constants.SUCCESS_CODE, message, traceId, null);
         return ServerResponse.ok().bodyValue(response);
     }
 
-    protected <T> Mono<ServerResponse> created(String message, T body) {
-        log.debug("Recurso creado: {}", body);
-        LocalApiResponse<T> response = new LocalApiResponse<>(message, body);
+    protected <T> Mono<ServerResponse> created(String traceId, String message, T body) {
+        log.info(Constants.LOG_RESPONSE_SUCCESS, traceId, message);
+        LocalApiResponse<T> response = new LocalApiResponse<>(Constants.SUCCESS_CODE, message, traceId, body);
         return ServerResponse.status(HttpStatus.CREATED).bodyValue(response);
     }
 
