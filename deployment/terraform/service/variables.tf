@@ -1,7 +1,7 @@
 variable "aws_region" {
   type        = string
   description = "AWS region for application resources."
-  default     = "us-east-2"
+  default     = "us-east-1"
 }
 
 variable "project" {
@@ -55,11 +55,6 @@ variable "image_tag" {
   type        = string
   description = "Container image tag deployed to ECS."
   default     = "latest"
-}
-
-variable "alb_certificate_arn" {
-  type        = string
-  description = "ARN of the ACM certificate attached to the public ALB HTTPS listener."
 }
 
 variable "vpc_cidr" {

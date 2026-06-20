@@ -1,7 +1,7 @@
 variable "aws_region" {
   type        = string
   description = "AWS region for Terraform bootstrap resources."
-  default     = "us-east-2"
+  default     = "us-east-1"
 }
 
 variable "terraform_state_bucket" {

@@ -1,7 +1,7 @@
 FROM gradle:8.14.3-jdk21-alpine AS builder
 
 WORKDIR /workspace
-COPY build.gradle settings.gradle main.gradle gradle.properties gradlew /workspace/
+COPY build.gradle settings.gradle main.gradle gradle.properties gradlew sonar.properties /workspace/
 COPY gradle /workspace/gradle
 COPY applications /workspace/applications
 COPY domain /workspace/domain

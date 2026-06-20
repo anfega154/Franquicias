@@ -351,3 +351,10 @@ GEMINI.md
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+**/.terraform/
+*.tfvars
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
