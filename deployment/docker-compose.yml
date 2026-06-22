@@ -5,6 +5,36 @@ services:
       dockerfile: deployment/Dockerfile
     image: franquicias-app:latest
     container_name: franquicias-app
+    environment:
+      SERVER_PORT: 8080
+      MONGO_URI: mongodb://mongo:27017/franchises?retryWrites=false
     ports:
       - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep UP || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  mongo:
+    image: mongo:7.0
+    container_name: franquicias-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  mongo_data:

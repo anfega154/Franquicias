@@ -1,5 +1,6 @@
 package co.com.anfega.api.config;
 
+import co.com.anfega.model.common.constants.Constants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,13 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of(origins.split(",")));
-        config.setAllowedMethods(Arrays.asList("POST", "GET"));
+        config.setAllowedMethods(Arrays.asList(
+                Constants.REQUEST_METHOD_POST,
+                Constants.REQUEST_METHOD_GET,
+                Constants.REQUEST_METHOD_PUT,
+                Constants.REQUEST_METHOD_DELETE,
+                Constants.REQUEST_METHOD_OPTIONS
+        ));
         config.setAllowedHeaders(List.of(CorsConfiguration.ALL));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

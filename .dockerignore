@@ -1,0 +1,13 @@
+.git
+.gradle
+.idea
+.codex
+build
+build-cache
+**/build
+**/.terraform
+**/.terraform.lock.hcl
+**/*.iml
+*.log
+README.md
+AGENTS.md
