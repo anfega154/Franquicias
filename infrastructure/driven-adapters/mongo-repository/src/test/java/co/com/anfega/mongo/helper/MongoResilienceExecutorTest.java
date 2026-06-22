@@ -22,7 +22,7 @@ class MongoResilienceExecutorTest {
 
         StepVerifier.create(mongoResilienceExecutor.executeMono("loading franchise", () -> Mono.never()))
                 .expectErrorMatches(throwable -> throwable instanceof BusinessException
-                        && throwable.getMessage().contains("timed out"))
+                        && throwable.getMessage().contains("tardó demasiado"))
                 .verify();
     }
 
@@ -56,7 +56,7 @@ class MongoResilienceExecutorTest {
 
         StepVerifier.create(mongoResilienceExecutor.executeMono("saving product", () -> Mono.just("ok")))
                 .expectErrorMatches(throwable -> throwable instanceof BusinessException
-                        && throwable.getMessage().contains("temporarily unavailable"))
+                        && throwable.getMessage().contains("temporalmente"))
                 .verify();
     }
 }

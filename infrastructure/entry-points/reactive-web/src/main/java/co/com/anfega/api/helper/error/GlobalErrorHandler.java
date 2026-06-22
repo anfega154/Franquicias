@@ -18,6 +18,9 @@ import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -63,10 +66,7 @@ public class GlobalErrorHandler implements WebExceptionHandler {
         }
 
         if (exception instanceof ConstraintViolationException constraintViolationException) {
-            String validationMessage = constraintViolationException.getConstraintViolations()
-                    .stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.joining(", "));
+            String validationMessage = buildValidationMessage(constraintViolationException);
 
             return buildResponse(
                     HttpStatus.BAD_REQUEST,
@@ -97,6 +97,21 @@ public class GlobalErrorHandler implements WebExceptionHandler {
                 exchange,
                 traceId
         );
+    }
+
+    private String buildValidationMessage(ConstraintViolationException exception) {
+        Set<String> validationMessages = exception.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .filter(message -> message != null && !message.isBlank())
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (validationMessages.isEmpty()) {
+            return ErrorCode.VALIDATION_ERROR.getMessage();
+        }
+
+        return String.join("; ", validationMessages);
     }
 
     private ApiErrorResponse buildResponse(

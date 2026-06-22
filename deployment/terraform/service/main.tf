@@ -108,14 +108,14 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
-  description = "Ingress for the internet-facing ALB."
+  description = "Ingress for the internal ALB from API Gateway VPC Link."
   vpc_id      = aws_vpc.this.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.apigateway_vpc_link.id]
   }
 
   egress {
@@ -123,6 +123,21 @@ resource "aws_security_group" "alb" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = local.tags
+}
+
+resource "aws_security_group" "apigateway_vpc_link" {
+  name        = "${local.name_prefix}-apigw-vpc-link-sg"
+  description = "Allows API Gateway VPC Link to reach the internal ALB."
+  vpc_id      = aws_vpc.this.id
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   tags = local.tags
@@ -152,10 +167,10 @@ resource "aws_security_group" "ecs_service" {
 
 resource "aws_lb" "this" {
   name               = substr("${local.name_prefix}-alb", 0, 32)
-  internal           = false
+  internal           = true
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  subnets            = aws_subnet.private[*].id
 
   access_logs {
     bucket  = aws_s3_bucket.alb_access_logs.bucket
@@ -252,6 +267,13 @@ resource "aws_cloudwatch_log_group" "app" {
   tags = local.tags
 }
 
+resource "aws_cloudwatch_log_group" "api_gateway" {
+  name              = "/aws/apigateway/${local.name_prefix}"
+  retention_in_days = var.log_retention_days
+
+  tags = local.tags
+}
+
 resource "aws_ecr_repository" "app" {
   name                 = "${var.project}-api"
   image_tag_mutability = "MUTABLE"
@@ -265,6 +287,63 @@ resource "aws_ecr_repository" "app" {
 
 resource "aws_ecs_cluster" "this" {
   name = "${local.name_prefix}-cluster"
+
+  tags = local.tags
+}
+
+resource "aws_apigatewayv2_vpc_link" "this" {
+  name               = "${local.name_prefix}-vpc-link"
+  security_group_ids = [aws_security_group.apigateway_vpc_link.id]
+  subnet_ids         = aws_subnet.private[*].id
+
+  tags = local.tags
+}
+
+resource "aws_apigatewayv2_api" "this" {
+  name          = "${local.name_prefix}-http-api"
+  protocol_type = "HTTP"
+  description   = "Public HTTP API for Franquicias routed privately to ECS through an internal ALB."
+
+  tags = local.tags
+}
+
+resource "aws_apigatewayv2_integration" "alb" {
+  api_id                 = aws_apigatewayv2_api.this.id
+  integration_type       = "HTTP_PROXY"
+  integration_method     = "ANY"
+  integration_uri        = aws_lb_listener.http.arn
+  connection_type        = "VPC_LINK"
+  connection_id          = aws_apigatewayv2_vpc_link.this.id
+  payload_format_version = "1.0"
+  timeout_milliseconds   = 30000
+}
+
+resource "aws_apigatewayv2_route" "default" {
+  api_id    = aws_apigatewayv2_api.this.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
+}
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.this.id
+  name        = var.api_gateway_stage_name
+  auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway.arn
+    format = jsonencode({
+      requestId               = "$context.requestId"
+      ip                      = "$context.identity.sourceIp"
+      requestTime             = "$context.requestTime"
+      httpMethod              = "$context.httpMethod"
+      routeKey                = "$context.routeKey"
+      path                    = "$context.path"
+      status                  = "$context.status"
+      protocol                = "$context.protocol"
+      responseLength          = "$context.responseLength"
+      integrationErrorMessage = "$context.integrationErrorMessage"
+    })
+  }
 
   tags = local.tags
 }

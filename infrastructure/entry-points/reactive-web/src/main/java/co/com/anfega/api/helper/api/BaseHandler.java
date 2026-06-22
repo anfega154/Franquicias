@@ -16,21 +16,21 @@ import java.util.Set;
 public abstract class BaseHandler {
 
     protected <T> Mono<ServerResponse> ok(String traceId, String message, T body) {
-        log.info(Constants.LOG_RESPONSE_SUCCESS, traceId, message);
-        LocalApiResponse<T> response = new LocalApiResponse<>(Constants.SUCCESS_CODE, message, traceId, body);
-        return ServerResponse.ok().bodyValue(response);
+        return buildResponse(HttpStatus.OK, traceId, message, body);
     }
 
     protected <T> Mono<ServerResponse> ok(String traceId, String message) {
-        log.info(Constants.LOG_RESPONSE_SUCCESS, traceId, message);
-        LocalApiResponse<T> response = new LocalApiResponse<>(Constants.SUCCESS_CODE, message, traceId, null);
-        return ServerResponse.ok().bodyValue(response);
+        return buildResponse(HttpStatus.OK, traceId, message, null);
     }
 
     protected <T> Mono<ServerResponse> created(String traceId, String message, T body) {
+        return buildResponse(HttpStatus.CREATED, traceId, message, body);
+    }
+
+    private <T> Mono<ServerResponse> buildResponse(HttpStatus status, String traceId, String message, T body) {
         log.info(Constants.LOG_RESPONSE_SUCCESS, traceId, message);
         LocalApiResponse<T> response = new LocalApiResponse<>(Constants.SUCCESS_CODE, message, traceId, body);
-        return ServerResponse.status(HttpStatus.CREATED).bodyValue(response);
+        return ServerResponse.status(status).bodyValue(response);
     }
 
     public <T> Mono<T> bodyToMonoValidated(Validator validator, ServerRequest request, Class<T> clazz) {

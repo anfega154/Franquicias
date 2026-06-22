@@ -30,7 +30,7 @@ public class TraceIdFilter implements WebFilter {
         }
 
         String sanitizedTraceId = traceId.replace("\"", "");
-        validateTraceId(sanitizedTraceId);
+        validateTraceId(exchange, sanitizedTraceId);
 
         return continueWithTraceId(exchange, chain, sanitizedTraceId);
     }
@@ -40,9 +40,12 @@ public class TraceIdFilter implements WebFilter {
         return traceId != null ? traceId : headers.getFirst(Constants.TRACE_ID_COMPATIBILITY_HEADER);
     }
 
-    private void validateTraceId(String traceId) {
+    private void validateTraceId(ServerWebExchange exchange, String traceId) {
         if (!UUID_PATTERN.matcher(traceId).matches()) {
-            throw BusinessException.withMessage(ErrorCode.INVALID_TRACE_ID, traceId, Constants.INVALID_TRACE_ID_MESSAGE);
+            String generatedTraceId = UUID.randomUUID().toString();
+            exchange.getAttributes().put(Constants.TRACE_ID_ATTRIBUTE, generatedTraceId);
+            exchange.getResponse().getHeaders().set(Constants.TRACE_ID_HEADER, generatedTraceId);
+            throw BusinessException.withMessage(ErrorCode.INVALID_TRACE_ID, generatedTraceId, Constants.INVALID_TRACE_ID_MESSAGE);
         }
     }
 

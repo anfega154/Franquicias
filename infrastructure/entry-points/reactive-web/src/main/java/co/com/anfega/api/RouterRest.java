@@ -97,7 +97,7 @@ public class RouterRest {
                             responses = {
                                     @ApiResponse(
                                             responseCode = "200",
-                                            description = "Franquicia actualizada con exito",
+                                            description = "Franquicia actualizada con éxito",
                                             content = @Content(
                                                     schema = @Schema(implementation = FranchiseDTO.class)
                                             )

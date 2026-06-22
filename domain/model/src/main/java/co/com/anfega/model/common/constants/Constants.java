@@ -23,25 +23,25 @@ public class Constants {
 
     public static final String BODY_EMPTY_ERROR = "El body no puede estar vacío";
     public static final String INVALID_TRACE_ID_MESSAGE = "El header X-B3-TraceId debe ser un UUID válido";
-    public static final String INVALID_JSON_MESSAGE = "Formato JSON inválido en la petición";
-    public static final String FRANCHISE_ID_MUST_BE_EMPTY = "El id de la franquicia debe ser nulo o vacío al crear una nueva franquicia";
-    public static final String FRANCHISE_ID_REQUIRED = "El id de la franquicia es obligatorio para actualizar una franquicia";
-    public static final String BRANCH_ID_MUST_BE_EMPTY = "La sucursal no debe tener un id asignado";
-    public static final String BRANCH_ID_REQUIRED = "El id de la sucursal es obligatorio para actualizar una sucursal";
-    public static final String PRODUCT_ID_MUST_BE_EMPTY = "El id del producto debe ser nulo o vacío al crear un nuevo producto";
-    public static final String PRODUCT_ID_REQUIRED = "El id del producto es obligatorio para actualizar un producto";
+    public static final String INVALID_JSON_MESSAGE = "El body debe tener un JSON válido";
+    public static final String FRANCHISE_ID_MUST_BE_EMPTY = "No envíes el id al crear una franquicia";
+    public static final String FRANCHISE_ID_REQUIRED = "Debes enviar el id para actualizar la franquicia";
+    public static final String BRANCH_ID_MUST_BE_EMPTY = "No envíes el id al crear una sucursal";
+    public static final String BRANCH_ID_REQUIRED = "Debes enviar el id para actualizar la sucursal";
+    public static final String PRODUCT_ID_MUST_BE_EMPTY = "No envíes el id al crear un producto";
+    public static final String PRODUCT_ID_REQUIRED = "Debes enviar el id para actualizar el producto";
     public static final String PRODUCT_QUERY_ID_REQUIRED = "El id del producto es obligatorio";
     public static final String PRODUCT_STOCK_REQUIRED = "El stock del producto es obligatorio y debe ser mayor o igual a cero";
-    public static final String FRANCHISE_NAME_REQUIRED = "El nombre de la franquicia no puede estar vacío";
+    public static final String FRANCHISE_NAME_REQUIRED = "El nombre de la franquicia es obligatorio";
 
-    public static final String CREATE_FRANCHISE_SUCCESS_MESSAGE = "Franquicia creada con exito";
-    public static final String UPDATE_FRANCHISE_SUCCESS_MESSAGE = "Franquicia actualizada con exito";
-    public static final String CREATE_BRANCH_SUCCESS_MESSAGE = "Sucursal creada con exito";
-    public static final String UPDATE_BRANCH_SUCCESS_MESSAGE = "Sucursal actualizada con exito";
-    public static final String CREATE_PRODUCT_SUCCESS_MESSAGE = "Producto creado con exito";
-    public static final String UPDATE_PRODUCT_SUCCESS_MESSAGE = "Producto actualizado con exito";
-    public static final String DELETE_PRODUCT_SUCCESS_MESSAGE = "Producto eliminado con exito";
-    public static final String UPDATE_PRODUCT_STOCK_SUCCESS_MESSAGE = "Stock actualizado con exito";
+    public static final String CREATE_FRANCHISE_SUCCESS_MESSAGE = "Franquicia creada con éxito";
+    public static final String UPDATE_FRANCHISE_SUCCESS_MESSAGE = "Franquicia actualizada con éxito";
+    public static final String CREATE_BRANCH_SUCCESS_MESSAGE = "Sucursal creada con éxito";
+    public static final String UPDATE_BRANCH_SUCCESS_MESSAGE = "Sucursal actualizada con éxito";
+    public static final String CREATE_PRODUCT_SUCCESS_MESSAGE = "Producto creado con éxito";
+    public static final String UPDATE_PRODUCT_SUCCESS_MESSAGE = "Producto actualizado con éxito";
+    public static final String DELETE_PRODUCT_SUCCESS_MESSAGE = "Producto eliminado con éxito";
+    public static final String UPDATE_PRODUCT_STOCK_SUCCESS_MESSAGE = "Stock actualizado con éxito";
     public static final String QUERY_SUCCESS_MESSAGE = "Consulta exitosa";
 
     public static final String FRANCHISE_NAME_REQUIRED_VALIDATION_MESSAGE = "El nombre de la franquicia es obligatorio";
@@ -111,10 +111,10 @@ public class Constants {
     public static final String LOG_PERSISTENCE_CONNECTIVITY_FAILURE = "Mongo connectivity failure while {}";
     public static final String LOG_PERSISTENCE_OPERATION_FAILURE = "Mongo operation failed while {}";
 
-    public static final String PERSISTENCE_TIMEOUT_MESSAGE = "Mongo persistence timed out while %s";
-    public static final String PERSISTENCE_TEMPORARILY_UNAVAILABLE_MESSAGE = "Mongo persistence is temporarily unavailable while %s";
-    public static final String PERSISTENCE_UNAVAILABLE_MESSAGE = "Mongo persistence is unavailable while %s";
-    public static final String PERSISTENCE_OPERATION_FAILED_MESSAGE = "Mongo persistence failed while %s";
+    public static final String PERSISTENCE_TIMEOUT_MESSAGE = "La persistencia tardó demasiado en responder";
+    public static final String PERSISTENCE_TEMPORARILY_UNAVAILABLE_MESSAGE = "La persistencia no está disponible temporalmente";
+    public static final String PERSISTENCE_UNAVAILABLE_MESSAGE = "La persistencia no está disponible";
+    public static final String PERSISTENCE_OPERATION_FAILED_MESSAGE = "Falló la operación en la persistencia";
 
     public static final String CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy";
     public static final String CONTENT_SECURITY_POLICY_VALUE = "default-src 'self'; frame-ancestors 'self'; form-action 'self'";

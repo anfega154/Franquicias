@@ -46,6 +46,12 @@ variable "health_check_path" {
   default     = "/actuator/health"
 }
 
+variable "api_gateway_stage_name" {
+  type        = string
+  description = "Stage name for the public HTTP API Gateway."
+  default     = "$default"
+}
+
 variable "mongodb_secret_name" {
   type        = string
   description = "Name of the AWS Secrets Manager secret that stores MONGO_URI."
