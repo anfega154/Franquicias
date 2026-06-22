@@ -2,6 +2,7 @@ package co.com.anfega.usecase.product;
 
 import co.com.anfega.model.branch.Branch;
 import co.com.anfega.model.branch.gateways.BranchRepository;
+import co.com.anfega.model.common.error.BusinessException;
 import co.com.anfega.model.franchise.Franchise;
 import co.com.anfega.model.franchise.gateways.FranchiseRepository;
 import co.com.anfega.model.product.Product;
@@ -38,7 +39,7 @@ class ProductUseCaseTest {
         when(franchiseRepository.findByName("franchise")).thenReturn(Mono.empty());
 
         StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
+                .expectErrorMatches(e -> e instanceof BusinessException &&
                         e.getMessage().equals("La franquicia con nombre franchise no existe."))
                 .verify();
     }
@@ -54,7 +55,7 @@ class ProductUseCaseTest {
         when(branchRepository.findByNameAndFranchiseId("branch", "f1")).thenReturn(Mono.empty());
 
         StepVerifier.create(productUseCase.save(product, "branch", "franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
+                .expectErrorMatches(e -> e instanceof BusinessException &&
                         e.getMessage().equals("La sucursal con nombre branch no existe."))
                 .verify();
     }
@@ -118,7 +119,7 @@ class ProductUseCaseTest {
         when(franchiseRepository.findByName("franchise")).thenReturn(Mono.empty());
 
         StepVerifier.create(productUseCase.getTopProductPerBranch("franchise"))
-                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
+                .expectErrorMatches(e -> e instanceof BusinessException &&
                         e.getMessage().equals("La franquicia con nombre franchise no existe."))
                 .verify();
     }

@@ -8,6 +8,7 @@ buildscript {
         lombokVersion = '1.18.38'
         mapstructVersion = '1.6.3'
         jakartaValidationVersion = '3.0.2'
+        resilience4jVersion = '2.4.0'
 	}
 }
 
@@ -24,13 +25,26 @@ file("sonar.properties").withInputStream { sonarProps.load(it) }
 
 sonar {
     def modules = subprojects.projectDir.collect { "${it.toString().replace(project.projectDir.toString() + "/", "")}" }
+    def mergedReportPath = rootProject.layout.buildDirectory.file('reports/jacocoMergedReport/jacocoMergedReport.xml').get().asFile
     properties {
         sonarProps.each { key, value ->
             property key, value
         }
         property "sonar.modules", "${modules.join(',')}"
         property "sonar.sources", sonarProps["sonar.sources"] + "," + modules.collect { "${it}/build.gradle" }.join(',')
+        property "sonar.coverage.jacoco.xmlReportPaths", mergedReportPath
+        property "sonar.coverage.exclusions", [
+                "**/MainApplication.java",
+                "**/config/**",
+                "**/dto/**",
+                "**/model/**",
+                "**/entity/**"
+        ].join(",")
     }
 }
 
 apply from: './main.gradle'
+
+tasks.named("sonar").configure {
+    dependsOn("jacocoMergedReport")
+}

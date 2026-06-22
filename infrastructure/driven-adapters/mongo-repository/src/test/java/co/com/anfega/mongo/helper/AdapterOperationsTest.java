@@ -26,6 +26,9 @@ class AdapterOperationsTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private MongoResilienceExecutor mongoResilienceExecutor;
+
     private MongoRepositoryAdapter adapter;
 
     private Franchise franchise;
@@ -43,7 +46,7 @@ class AdapterOperationsTest {
         when(objectMapper.map(franchise, FranchiseEntity.class)).thenReturn(franchiseEntity);
         when(objectMapper.map(franchiseEntity, Franchise.class)).thenReturn(franchise);
 
-        adapter = new MongoRepositoryAdapter(repository, objectMapper);
+        adapter = new MongoRepositoryAdapter(repository, objectMapper, mongoResilienceExecutor);
     }
 
     @Test

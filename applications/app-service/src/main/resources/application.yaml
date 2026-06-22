@@ -24,6 +24,34 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+    instances:
+      mongoDb:
+        baseConfig: default
+
+adapters:
+  mongo:
+    resilience:
+      circuit-breaker-name: mongoDb
+      timeout-in-ms: 3000
+
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 

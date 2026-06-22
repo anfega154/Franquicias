@@ -2,14 +2,13 @@ package co.com.anfega.usecase.branch;
 
 import co.com.anfega.model.branch.Branch;
 import co.com.anfega.model.branch.gateways.BranchRepository;
+import co.com.anfega.model.common.error.BusinessException;
 import co.com.anfega.model.franchise.Franchise;
 import co.com.anfega.model.franchise.gateways.FranchiseRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,8 +57,8 @@ class BranchUseCaseTest {
         when(franchiseRepository.findByName("franchise")).thenReturn(Mono.empty());
 
         StepVerifier.create(branchUseCase.save(branch, "franchise"))
-                .expectErrorMatches(t -> t instanceof NoSuchElementException &&
-                        t.getMessage().equals("La franquicia no existe"))
+                .expectErrorMatches(t -> t instanceof BusinessException &&
+                        t.getMessage().equals("La franquicia con nombre franchise no existe."))
                 .verify();
 
         verify(franchiseRepository).findByName("franchise");

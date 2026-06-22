@@ -1,215 +1,448 @@
-# Proyecto Base: API de Franquicias 🏪
+# API de Franquicias 🏪
 
-Este proyecto implementa una **API reactiva** con **Spring Boot + WebFlux**, estructurada bajo el patrón **Clean Architecture**.  
-La solución gestiona una red de **franquicias, sucursales y productos**, permitiendo operaciones de creación, actualización y consulta.
+API reactiva construida con **Spring Boot 3 + WebFlux** bajo **Clean Architecture** para administrar franquicias, sucursales y productos.
 
-Repositorio en GitHub 👉 [anfega154/Franquicias](https://github.com/anfega154/Franquicias)
+Repositorio: [anfega154/Franquicias](https://github.com/anfega154/Franquicias)
 
 ---
 
-## 📖 Tabla de Contenido
+## Tabla de contenido
+
 - [Arquitectura](#arquitectura)
-- [Módulos del Proyecto](#módulos-del-proyecto)
-    - [Domain](#domain)
-    - [Usecases](#usecases)
-    - [Infrastructure](#infrastructure)
-        - [Driven Adapters](#driven-adapters)
-        - [Entry Points](#entry-points)
-    - [Application](#application)
-- [Configuración](#configuración)
-    - [application.yml](#applicationyml)
-- [Persistencia](#persistencia)
-- [Ejecución del Proyecto](#ejecución-del-proyecto)
-- [API REST](#api-rest)
-    - [Documentación Swagger](#documentación-swagger)
-- [Pruebas](#pruebas)
-- [SonnarQube](#sonnarqube)
-- [Despliegue en la Nube](#despliegue-en-la-nube)
+- [Ejecución local](#ejecución-local)
+- [Infraestructura AWS](#infraestructura-aws)
+- [Despliegue con Terraform, ECR, ECS y API Gateway](#despliegue-con-terraform-ecr-ecs-y-api-gateway)
+- [Pruebas con curl](#pruebas-con-curl)
+- [Manejo de errores y resiliencia](#manejo-de-errores-y-resiliencia)
+- [Documentación de estudio](#documentación-de-estudio)
 
 ---
 
-## 🏛️ Arquitectura
+## Arquitectura
 
-El proyecto está basado en **Clean Architecture**, siguiendo la plantilla de Bancolombia.  
-Esto permite mantener el **dominio protegido**, separando la lógica de negocio de los detalles técnicos.
+### Arquitectura de código
 
-![Clean Architecture](https://miro.medium.com/max/1400/1*ZdlHz8B0-qu9Y-QO3AXR_w.png)
+- **Domain**: entidades, reglas de negocio, errores de dominio y puertos
+- **Usecase**: orquesta los casos de uso
+- **Infrastructure / driven adapters**: MongoDB Atlas y resiliencia
+- **Infrastructure / entry points**: endpoints WebFlux, validaciones, traceId y manejo global de errores
+- **Application**: configuración Spring Boot y wiring
 
----
+### Arquitectura de despliegue
 
-## 📂 Módulos del Proyecto
+```mermaid
+flowchart LR
+    C["Cliente / Consumidor API"] --> G["API Gateway HTTP API (público)"]
+    G --> V["VPC Link"]
+    V --> A["ALB interno"]
+    A --> E["ECS Fargate"]
+    E --> S["Secrets Manager (MONGO_URI)"]
+    E --> L["CloudWatch Logs"]
+    E --> N["NAT Gateway"]
+    N --> M["MongoDB Atlas"]
+```
 
-### Domain
-- Contiene los **modelos del dominio** (`Franchise`, `Branch`, `Product`).
-- Define las **interfaces de repositorio** (`FranchiseRepository`, `BranchRepository`, `ProductRepository`).
-- Encapsula las **reglas de negocio**.
-- Se exponen los casos de uso mediante puertos (interfaces). (`FranchiseInpuntPort`, `BranchInputPort`, `ProductInputPort`).
-- No tiene dependencias hacia otros módulos.
+### Decisión de arquitectura
 
+La API ya no debe exponerse directamente por el ALB público.  
+La estrategia propuesta y codificada en Terraform es:
 
-### Usecases
-- Implementa los **casos de uso** del sistema:
-    - Crear franquicia.
-    - Crear sucursal.
-    - Crear producto.
-    - Actualizar stock.
-    - Eliminar producto.
-    - Obtener producto con mayor stock por sucursal.
+- **API Gateway** como punto de entrada público
+- **VPC Link** para entrar de forma privada a la VPC
+- **ALB interno** como balanceador privado
+- **ECS Fargate** ejecutando la aplicación
 
-Los casos de uso **orquestan la lógica de aplicación** y son invocados por los entry points.
+Esto mejora:
 
-### Infrastructure
+- control del punto de entrada
+- posibilidad futura de agregar auth, throttling, WAF y custom domain
+- aislamiento del ALB
 
-#### Driven Adapters
-- Implementaciones técnicas:
-    - **MongoDB (Atlas)** como base de datos en la nube.
+### Impacto del primer apply de migración
 
-#### Entry Points
-- **Routers + Handlers** basados en **Spring WebFlux**.
-- Documentados con **springdoc-openapi** para Swagger UI.
+La primera vez que apliques estos cambios Terraform va a:
 
-### Application
-- Módulo más externo de la arquitectura.
-- Configura el arranque de Spring Boot (`MainApplication`).
-- Ensambla los módulos, resuelve dependencias y expone los casos de uso como beans.
+- crear API Gateway y VPC Link
+- recrear el ALB como **interno**
+- mover el punto de entrada público desde ALB hacia API Gateway
 
----
+Eso implica una **ventana corta de cambio**.  
+Hazlo en una franja controlada y valida al final con:
 
-## ⚙️ Configuración
-
-### application.yml
-
-```yaml
-server:
-  port: 8080
-
-spring:
-  data:
-    mongodb:
-      uri: "mongodb+srv://<user>:<password>@anfega.ybqhqud.mongodb.net/?retryWrites=true&w=majority&appName=anfega"
-      database: "franchises"
-  application:
-    name: "Franquicias"
-  devtools:
-    add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: "/h2"
-  profiles:
-    include: null
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,prometheus"
-  endpoint:
-    health:
-      probes:
-        enabled: true
-
-cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
-
-routers:
-  paths:
-    franchises: "/api/v1/franquicias"
-    branches: "/api/v1/sucursales"
-    products: "/api/v1/productos"
-    topProducts: "/api/v1/franchises/{franchiseName}/top-products-per-branch"
-
+```bash
+terraform output -raw api_gateway_url
+curl -i "$(terraform output -raw api_gateway_url)/actuator/health"
 ```
 
 ---
 
-#### 🗄️ Persistencia
-- El proyecto utiliza MongoDB Atlas como base de datos.
-- Colecciones principales:
-    - `franchises`
-    - `branches`
-    - `products`
-  
------
+## Ejecución local
 
-## 🚀 Ejecución del Proyecto
--Requisitos:
+### Requisitos
+
 - Java 21+
-- Maven 8+
-- MongoDB Atlas (configurado en `application.yml`)
+- Docker
+- Gradle Wrapper (`./gradlew`)
 
--Pasos:
-# Clonar repositorio
-git clone https://github.com/anfega154/Franquicias.git
-cd Franquicias
+### Variables necesarias
 
-# Compilar
-./gradlew clean build
+La app necesita:
 
-# Ejecutar
-./gradlew bootRun
+- `MONGO_URI`
+- opcionalmente `SERVER_PORT`
 
-- La aplicación correrá en 👉 http://localhost:8080
+### Ejecutar con Gradle
+
+```bash
+cd /Users/andresganan/Desktop/Retos/Franquicias
+export MONGO_URI='mongodb+srv://<usuario>:<password>@<cluster>/?appName=anfega'
+./gradlew clean bootRun
+```
+
+### Ejecutar con Docker Compose
+
+```bash
+cd /Users/andresganan/Desktop/Retos/Franquicias/deployment
+docker compose up --build
+```
+
+### URLs locales
+
+- Swagger: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- OpenAPI: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+- Health: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
 ---
 
-## 🛠️ API REST
-### Rutas principales
+## Infraestructura AWS
 
-| Método | Endpoint                                                   | Descripción                                      |
-|--------|------------------------------------------------------------|--------------------------------------------------|
-| POST   | /api/v1/franquicias                                        | Crear una franquicia                             |
-| PUT    | /api/v1/franquicias                                        | Actualizar una franquicia                        |
-| POST   | /api/v1/sucursales                                         | Crear una sucursal en una franquicia             |
-| PUT    | /api/v1/sucursales                                         | Actualizar una sucursal en una franquicia        |
-| POST   | /api/v1/productos                                          | Crear un producto en una sucursal                |
-| PUT    | /api/v1/productos                                          | Actualizar un producto en una sucursal           |
-| PUT    | /api/v1/productos/update-stock?id={id}                     | Actualizar stock de un producto                  |
-| DELETE | /api/v1/productos?id={id}                                  | Eliminar un producto                             |
-| GET    | /api/v1/franchises/{franchiseName}/top-products-per-branch | Obtener el producto con mayor stock por sucursal |
+### Recursos bootstrap creados manualmente
+
+- Bucket S3 `terraform-state-anfega` para el state remoto
+- Versionado del bucket habilitado
+- Tabla DynamoDB `terraform-locks` para locking del state
+- Secreto `MONGO_URI` en Secrets Manager
+
+### Recursos creados por Terraform
+
+#### Red
+
+- VPC
+- 2 subredes públicas
+- 2 subredes privadas
+- Internet Gateway
+- NAT Gateway
+- Route tables públicas y privadas
+
+#### Seguridad
+
+- Security Group del **API Gateway VPC Link**
+- Security Group del **ALB interno**
+- Security Group del **servicio ECS**
+
+#### Exposición
+
+- **API Gateway HTTP API** público
+- **VPC Link**
+- **ALB interno**
+- Target group
+- Listener HTTP interno
+
+#### Cómputo y runtime
+
+- ECR para la imagen
+- ECS Cluster
+- ECS Task Definition
+- ECS Service en Fargate
+
+#### Observabilidad
+
+- CloudWatch log group de ECS
+- CloudWatch log group de API Gateway
+- Bucket S3 para access logs del ALB
+
+### Outputs importantes
+
+Después de aplicar Terraform:
+
+```bash
+cd /Users/andresganan/Desktop/Retos/Franquicias/deployment/terraform/service
+
+terraform output -raw api_gateway_url
+terraform output -raw alb_dns_name
+terraform output -raw ecs_cluster_name
+terraform output -raw ecs_service_name
+terraform output -raw nat_public_ip
+```
+
+Interpretación:
+
+- `api_gateway_url`: endpoint público para consumir la API
+- `alb_dns_name`: DNS interno del ALB, útil para troubleshooting dentro de la VPC
+- `nat_public_ip`: IP que debes permitir en MongoDB Atlas
 
 ---
 
-### Documentación Swagger
-- La API está documentada con Swagger UI.
-- Acceso en 👉 http://localhost:8080/swagger-ui.html
-- OpenAPI JSON: 👉 http://localhost:8080/v3/api-docs
+## Despliegue con Terraform, ECR, ECS y API Gateway
 
-----
+Ruta Terraform:
 
-## 🧪 Pruebas
-- El proyecto incluye pruebas unitarias
-- Frameworks: JUnit 5, Mockito
-- Ejecutar pruebas:
+- `/Users/andresganan/Desktop/Retos/Franquicias/deployment/terraform/service`
+
+### 1. Validar Terraform
+
 ```bash
-./gradlew test
+cd /Users/andresganan/Desktop/Retos/Franquicias/deployment/terraform/service
+terraform fmt
+terraform init -backend=false
+terraform validate
 ```
-- Reportes de cobertura con JaCoCo:
+
+### 2. Inicializar backend remoto
+
 ```bash
-./gradlew jacocoTestReport
+terraform init \
+  -backend-config="bucket=terraform-state-anfega" \
+  -backend-config="key=franquicias/dev/service.tfstate" \
+  -backend-config="region=us-east-1" \
+  -backend-config="dynamodb_table=terraform-locks" \
+  -backend-config="encrypt=true"
 ```
-- Reportes en: `build/reports/jacoco/test/html/index.html` 
+
+### 3. Crear primero el repositorio ECR
+
+```bash
+terraform plan \
+  -var-file=terraform.tfvars \
+  -target=aws_ecr_repository.app \
+  -out=ecr.tfplan
+
+terraform apply ecr.tfplan
+```
+
+### 4. Obtener URL del ECR
+
+```bash
+export ECR_URL="$(terraform output -raw ecr_repository_url)"
+export AWS_REGION="us-east-1"
+export REGISTRY="$(echo "$ECR_URL" | cut -d/ -f1)"
+```
+
+### 5. Construir imagen desde Mac M4 correctamente
+
+Como trabajas desde una Mac M4, **no debes usar `docker build` normal para producción en ECS**.  
+Debes construir la imagen como `linux/amd64`.
+
+```bash
+cd /Users/andresganan/Desktop/Retos/Franquicias
+
+export IMAGE_TAG="$(git rev-parse --short HEAD)-amd64"
+
+aws ecr get-login-password --region "$AWS_REGION" \
+  | docker login --username AWS --password-stdin "$REGISTRY"
+
+docker buildx create --name franquicias-builder --use 2>/dev/null || docker buildx use franquicias-builder
+docker buildx inspect --bootstrap
+
+docker buildx build \
+  --platform linux/amd64 \
+  --provenance=false \
+  -f deployment/Dockerfile \
+  -t "$ECR_URL:$IMAGE_TAG" \
+  --push \
+  .
+```
+
+### 6. Aplicar infraestructura completa
+
+```bash
+cd /Users/andresganan/Desktop/Retos/Franquicias/deployment/terraform/service
+
+terraform plan \
+  -var-file=terraform.tfvars \
+  -var="image_tag=$IMAGE_TAG" \
+  -out=service.tfplan
+
+terraform apply service.tfplan
+```
+
+> La primera migración a API Gateway recrea el ALB. Después del apply, deja de usar el DNS público viejo del ALB y prueba únicamente con `api_gateway_url`.
+
+### 7. Permitir salida hacia MongoDB Atlas
+
+```bash
+export NAT_IP="$(terraform output -raw nat_public_ip)"
+echo "$NAT_IP"
+```
+
+Agregar en MongoDB Atlas:
+
+```text
+<NAT_IP>/32
+```
+
+### 8. Forzar redeploy si necesitas refrescar tareas
+
+```bash
+export CLUSTER_NAME="$(terraform output -raw ecs_cluster_name)"
+export SERVICE_NAME="$(terraform output -raw ecs_service_name)"
+
+aws ecs update-service \
+  --region "$AWS_REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --service "$SERVICE_NAME" \
+  --force-new-deployment
+```
+
+### 9. Ver logs y estado
+
+```bash
+aws logs tail /ecs/franquicias-dev --region "$AWS_REGION" --follow
+
+aws ecs describe-services \
+  --region "$AWS_REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --services "$SERVICE_NAME"
+```
 
 ---
 
-## SonnarQube
-- Análisis de calidad de código con SonarQube.
+## Pruebas con curl
+
+Después del apply:
+
 ```bash
-./gradlew clean build sonar
+cd /Users/andresganan/Desktop/Retos/Franquicias/deployment/terraform/service
+
+export PUBLIC_API_URL="https://4jbqr8awo0.execute-api.us-east-1.amazonaws.com"
+export TRACE_ID="e6da272e-6bae-4900-a144-e60ef5df8f58"
 ```
-----
-## ☁️ Despliegue en la Nube
 
-El proyecto está desplegado en AWS ECS, lo que permite alta disponibilidad y escalabilidad.
+### Health
 
-- **Load Balancer:**  
-  [http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com)
+```bash
+curl -i "$PUBLIC_API_URL/actuator/health"
+```
 
-- **Swagger UI:**  
-  [Documentación interactiva](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com/swagger-ui.html)
+### Swagger
 
-- **OpenAPI Docs:**  
-  [Especificación OpenAPI (JSON)](http://franquicias-alb-1229694186.us-east-2.elb.amazonaws.com/v3/api-docs)
+```bash
+curl -I "$PUBLIC_API_URL/swagger-ui.html"
+```
 
-- **Imagen Docker en AWS ECR:**  
-  `502456973871.dkr.ecr.us-east-2.amazonaws.com/franq-api`
+### OpenAPI
+
+```bash
+curl "$PUBLIC_API_URL/v3/api-docs"
+```
+
+### Crear franquicia
+
+```bash
+curl -X POST "$PUBLIC_API_URL/api/v1/franquicias" \
+  -H "Content-Type: application/json" \
+  -H "X-B3-TraceId: $TRACE_ID" \
+  -d '{
+    "name": "Franquicia Demo"
+  }'
+```
+
+### Crear sucursal
+
+```bash
+curl -X POST "$PUBLIC_API_URL/api/v1/sucursales" \
+  -H "Content-Type: application/json" \
+  -H "X-B3-TraceId: $TRACE_ID" \
+  -d '{
+    "name": "Sucursal Centro",
+    "franchiseName": "Franquicia Demo"
+  }'
+```
+
+### Crear producto
+
+```bash
+curl -X POST "$PUBLIC_API_URL/api/v1/productos" \
+  -H "Content-Type: application/json" \
+  -H "X-B3-TraceId: $TRACE_ID" \
+  -d '{
+    "name": "Producto A",
+    "stock": 25,
+    "branchName": "Sucursal Centro",
+    "franchiseName": "Franquicia Demo"
+  }'
+```
+
+### Actualizar stock
+
+```bash
+curl -X PUT "$PUBLIC_API_URL/api/v1/productos/update-stock?id=PRODUCT_ID" \
+  -H "Content-Type: application/json" \
+  -H "X-B3-TraceId: $TRACE_ID" \
+  -d '{
+    "stock": 99
+  }'
+```
+
+### Eliminar producto
+
+```bash
+curl -X DELETE "$PUBLIC_API_URL/api/v1/productos?id=PRODUCT_ID" \
+  -H "X-B3-TraceId: $TRACE_ID"
+```
+
+### Top productos por sucursal
+
+```bash
+curl -X GET "$PUBLIC_API_URL/api/v1/franchises/Franquicia%20Demo/top-products-per-branch" \
+  -H "X-B3-TraceId: $TRACE_ID"
+```
+
+---
+
+## Manejo de errores y resiliencia
+
+### Manejo de errores
+
+Archivos principales:
+
+- `/Users/andresganan/Desktop/Retos/Franquicias/infrastructure/entry-points/reactive-web/src/main/java/co/com/anfega/api/helper/error/GlobalErrorHandler.java`
+- `/Users/andresganan/Desktop/Retos/Franquicias/infrastructure/entry-points/reactive-web/src/main/java/co/com/anfega/api/config/TraceIdFilter.java`
+- `/Users/andresganan/Desktop/Retos/Franquicias/domain/model/src/main/java/co/com/anfega/model/common/error/ErrorCode.java`
+
+Qué se mejoró:
+
+- mensajes de error más cortos y claros
+- respuestas de validación con mensajes deduplicados
+- `traceId` generado por el servidor cuando el cliente envía un header inválido
+- respuestas consistentes para errores de JSON, validación, not found y persistencia
+
+### Resiliencia
+
+Archivo principal:
+
+- `/Users/andresganan/Desktop/Retos/Franquicias/infrastructure/driven-adapters/mongo-repository/src/main/java/co/com/anfega/mongo/helper/MongoResilienceExecutor.java`
+
+Qué hace:
+
+- timeout de `3000 ms`
+- circuit breaker con Resilience4j
+- mapea fallos técnicos de Mongo a respuestas de negocio controladas
+
+Esto evita cascadas de fallo cuando MongoDB Atlas está lento o indisponible.
+
+---
+
+## Documentación de estudio
+
+Guía detallada:
+
+- `/Users/andresganan/Desktop/Retos/Franquicias/docs/deployment-study-guide.md`
+
+Incluye:
+
+- qué hace cada comando ejecutado
+- qué recursos crea AWS y para qué sirven
+- cómo redeployar cambios
+- problemas reales encontrados y cómo resolverlos
+- explicación de resiliencia y cómo sustentarla en entrevista

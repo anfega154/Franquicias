@@ -72,7 +72,7 @@ subprojects {
     }
 
     jacocoTestReport {
-        dependsOn test, 'pitest'
+        dependsOn test
         reports {
             xml.setRequired true
             xml.setOutputLocation layout.buildDirectory.file("reports/jacoco.xml")
@@ -89,15 +89,21 @@ jacoco {
 }
 
 tasks.register('jacocoMergedReport', JacocoReport) {
-    dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
+    dependsOn test
+    dependsOn subprojects.collect { it.tasks.withType(Test) }
+    subprojects.forEach { subproject ->
+        dependsOn subproject.tasks.withType(JacocoReport)
+    }
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
-    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+    executionData.setFrom project.fileTree(dir: '.', includes: ['**/build/jacoco/*.exec'])
     reports {
         xml.setRequired true
+        xml.setOutputLocation layout.buildDirectory.file('reports/jacocoMergedReport/jacocoMergedReport.xml')
         csv.setRequired false
         html.setRequired true
+        html.setOutputLocation layout.buildDirectory.dir('reports/jacocoMergedReport/html')
     }
 }
 

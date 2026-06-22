@@ -334,3 +334,29 @@ gradle-app.setting
 # -----
 *.hprof
 build-cache
+
+# AI KIT (BEGIN)
+.codex/
+# AI KIT (END)
+context/
+.ai/
+.ai-kit/
+ai-kit.lock
+.claude/
+.gemini/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+**/.terraform/
+*.tfvars
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfplan
+*.tfplan
